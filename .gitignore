@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Outputs e arquivos temporários gerados pelos scripts
+_output_batch*.txt
+_TESTE_*.docx
+_tmp_*/
+_pente_fino/
+_celia_tarifas_data*.json
+_legacy/
+
+# Templates/Assets binários grandes (rastreados externamente no Obsidian Vault)
+*/assets/__BASE_*.docx
+
+# Skill com repo git próprio
+pericia-contrato-digital/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
