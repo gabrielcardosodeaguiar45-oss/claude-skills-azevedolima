@@ -29,7 +29,10 @@ from docx_replace import substituir_em_docx
 from bancos import obter_endereco, resolver_chave
 from extrair_qualificacao import extrair_qualificacao
 
-PASTA_BATCH = r'C:\Users\gabri\OneDrive\Área de Trabalho\APP - ORGANIZAÇÃO PASTA AL\TESTE - Fazer inicial'
+PASTA_BATCH = os.environ.get(
+    'NOTIF_PASTA_BATCH',
+    r'C:\Users\gabri\OneDrive\Área de Trabalho\APP - ORGANIZAÇÃO PASTA AL\TESTE - Fazer inicial',
+)
 SKILL_DIR = os.path.dirname(__file__)
 ASSETS = os.path.join(SKILL_DIR, 'assets')
 
@@ -43,22 +46,18 @@ TEMPLATES = {
     ('rcc', 'SEM'): os.path.join(ASSETS, 'template_rcc__sem-escritorio.docx'),
 }
 
-# Advogado por UF + endereços de escritório — importados do cadastro central
-# skills/_common/. Fonte única de verdade compartilhada com inicial-nao-contratado.
+# Cadastros centrais em skills/_common/ — fonte única de verdade compartilhada
+# com inicial-nao-contratado, inicial-bradesco e demais skills do escritório.
 sys.path.insert(0, os.path.join(SKILL_DIR, '..', '_common'))
 try:
     from procuradores import ADVOGADO_POR_UF
     from escritorios_cadastro import montar_endereco_escritorio_completo
 except ImportError as e:
     raise ImportError(
-        f"Cadastros centrais não encontrados em skills/_common/: {e}. "
+        f"Cadastro central não encontrado em skills/_common/: {e}. "
         f"Verifique se a pasta _common/ existe ao lado de notificacao-extrajudicial/ "
-        f"com procuradores.py e escritorios_cadastro.py."
+        f"e contém procuradores.py e escritorios_cadastro.py."
     ) from e
-
-# DEPRECATED — use `montar_endereco_escritorio_completo(uf)`. Mantido como fallback
-# de compatibilidade com chamadas antigas que ainda assumem AL.
-ESCRITORIO_COMPOSTO = montar_endereco_escritorio_completo('AL')
 
 
 def encontrar_procuracao(pasta_kit: str, pasta_cliente: str | None = None) -> str | None:
@@ -361,8 +360,12 @@ def extrair_numero_logradouro(logradouro: str) -> tuple[str, str]:
 
 
 def montar_mapa_placeholders(qual: dict, banco_info: dict, advogado: dict,
-                              contratos: list, hoje: str) -> dict:
-    """Monta dict completo de placeholders para passar ao substituir_em_docx."""
+                              contratos: list, hoje: str, uf_acao: str) -> dict:
+    """Monta dict completo de placeholders para passar ao substituir_em_docx.
+
+    O endereço completo do escritório é resolvido a partir da `uf_acao`
+    via `_common/escritorios_cadastro.py` (matriz + unidade de apoio na UF).
+    """
     # Gênero do cliente
     g = qual.get('genero', 'M')
     if g == 'F':
@@ -469,8 +472,7 @@ def montar_mapa_placeholders(qual: dict, banco_info: dict, advogado: dict,
         '{{ADVOGADO_NOME_MAIUSCULO}}': advogado['nome_maiusculo'],
         '{{ADVOGADO_OAB_UF}}': advogado['oab_uf'],
         '{{SEU_SUA_ADVOGADO_A}}': 'sua advogada' if advogado['genero'] == 'F' else 'seu advogado',
-        # Endereço composto por UF (matriz + unidade de apoio da UF da ação)
-        '{{ESCRITORIO_ENDERECO_COMPOSTO}}': montar_endereco_escritorio_completo(advogado.get('uf', '')),
+        '{{ESCRITORIO_ENDERECO_COMPOSTO}}': montar_endereco_escritorio_completo(uf_acao),
 
         '{{CONTRATO_NUMEROS}}': contrato_numeros,
         '{{CONTRATO_COMPETENCIA_INICIO}}': contrato_competencia_inicio,
@@ -581,7 +583,7 @@ def processar_cliente(pasta_cliente: str, log: list):
                 print(f'  [SKIP] {path_rel}/{banco_chave}/{tese}: template {tese}/{versao} não existe')
                 continue
 
-            mapa = montar_mapa_placeholders(qual, banco_info, advogado, contratos_pasta, hoje_extenso)
+            mapa = montar_mapa_placeholders(qual, banco_info, advogado, contratos_pasta, hoje_extenso, uf_acao)
 
             output_dir = os.path.join(pasta_acao_abs, 'notificacao')
             os.makedirs(output_dir, exist_ok=True)
