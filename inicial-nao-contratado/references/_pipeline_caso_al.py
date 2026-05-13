@@ -345,10 +345,37 @@ def montar_dados_inicial_al(pasta_cliente: str, autora: Dict, comarca: str,
                 {'divergencia': False, 'alerta': None})
 
     # 10. Valor da causa
-    if calculo.get('valor_total_geral'):
+    # Hierarquia (gravada 13/05/2026):
+    #   1. CALCULO_INDEBITO.xlsx (gerado pela kit-juridico) → autoritativo
+    #   2. CALCULO_*.xlsx existente (compatibilidade com sessões antigas)
+    #   3. PDF de cálculo (legado — Cálculo Jurídico)
+    #   4. Estimativa: soma dos dobros + dano moral
+    vc = None
+    fonte_vc = None
+    try:
+        import sys as _sys
+        _skills_common = os.path.normpath(os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), '..', '..', '_common'))
+        if _skills_common not in _sys.path:
+            _sys.path.insert(0, _skills_common)
+        from calculadora_indebito import (
+            localizar_excel_indebito, ler_total_geral_xlsx)
+        xlsx_existente = localizar_excel_indebito(pasta_cliente)
+        if xlsx_existente:
+            leitura = ler_total_geral_xlsx(xlsx_existente)
+            if leitura and leitura.get('total_geral'):
+                vc = leitura['total_geral']
+                fonte_vc = (f'lido de {os.path.basename(xlsx_existente)} '
+                            f'(apuração {leitura.get("data_apuracao") or "?"}) — '
+                            f'subtotal dobrado R$ {leitura.get("subtotal_dobrado") or 0:,.2f} '
+                            f'+ dano moral R$ {leitura.get("dano_moral") or 0:,.2f}')
+                alertas.append(f'ℹ️ Valor da causa lido do Excel pré-existente: {fonte_vc}')
+    except Exception as _e:
+        alertas.append(f'⚠ Falha ao ler Excel de cálculo (fallback para estimativa): {_e}')
+    if vc is None and calculo.get('valor_total_geral'):
         vc = calculo['valor_total_geral']
         fonte_vc = 'PDF de cálculo'
-    else:
+    if vc is None:
         soma_dobros = sum(
             (c.get('valor_parcela_float', 0) or 0)
             * (c.get('qtd_parcelas', 0) or 0) * 2
@@ -356,7 +383,7 @@ def montar_dados_inicial_al(pasta_cliente: str, autora: Dict, comarca: str,
         )
         vc = soma_dobros + dm['total']
         fonte_vc = (f'estimado: soma dos dobros (R$ {soma_dobros:,.2f}) + dano '
-                    f'moral (R$ {dm["total"]:,.2f}) — sem PDF de cálculo')
+                    f'moral (R$ {dm["total"]:,.2f}) — sem Excel e sem PDF de cálculo')
 
     # 11. Decidir foro — `cidade_autor` é levada em conta para a regra de
     # cidade fixa (Viçosa/São Sebastião/Traipu → sempre Federal com renúncia
@@ -1156,27 +1183,32 @@ def gerar_inicial_al(dados_caso: Dict, output_path: str) -> Dict:
         for ph in re.findall(r'xxxxxxxx|xxx,xx|xx parcelas|xx/xxxx', p.text):
             placeholders_residuais.append(ph)
 
-    # ---- Gerar planilha de cálculo de indébito (Excel) ----
-    # Regra fixa do escritório (13/05/2026): junto com cada inicial AL/MG,
-    # gerar planilha Excel com cálculo detalhado dos descontos atualizados
-    # pelo INPC + juros 1% a.m. simples + dobro (art. 42 CDC). Arquivo sai
-    # ao lado do DOCX com nome 'CALCULO_<base>.xlsx'.
+    # ---- Planilha de cálculo de indébito (Excel) ----
+    # Regra (13/05/2026): SE já existe um CALCULO_INDEBITO.xlsx (gerado pela
+    # kit-juridico ao organizar o kit) ou outro CALCULO_*.xlsx na pasta, a
+    # inicial REUSA esse arquivo e NÃO regera. Se não houver Excel, a inicial
+    # gera um próprio como fallback (compatibilidade com pastas antigas).
     excel_path = None
     try:
         sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                           '..', '..', '_common'))
-        from calculadora_indebito import gerar_excel_indebito
-        nome_inicial = os.path.splitext(os.path.basename(output_path))[0]
-        excel_path = os.path.join(os.path.dirname(output_path),
-                                   f'CALCULO_{nome_inicial.replace("INICIAL_", "")}.xlsx')
-        nome_cli = (autora or {}).get('nome', '') or 'Cliente'
-        gerar_excel_indebito(
-            contratos=contratos_fmt,
-            cliente_nome=nome_cli,
-            output_path=excel_path,
-        )
+        from calculadora_indebito import (gerar_excel_indebito,
+                                            localizar_excel_indebito)
+        xlsx_pre = localizar_excel_indebito(os.path.dirname(output_path))
+        if xlsx_pre:
+            excel_path = xlsx_pre
+        else:
+            nome_inicial = os.path.splitext(os.path.basename(output_path))[0]
+            excel_path = os.path.join(os.path.dirname(output_path),
+                                       f'CALCULO_{nome_inicial.replace("INICIAL_", "")}.xlsx')
+            nome_cli = (autora or {}).get('nome', '') or 'Cliente'
+            gerar_excel_indebito(
+                contratos=contratos_fmt,
+                cliente_nome=nome_cli,
+                output_path=excel_path,
+            )
     except Exception as e_calc:
-        alertas.append(f'⚠ Falha ao gerar planilha de cálculo: {e_calc}')
+        alertas.append(f'⚠ Falha ao gerar/localizar planilha de cálculo: {e_calc}')
         excel_path = None
 
     return {

@@ -389,9 +389,6 @@ def fase_f_montar_estrutura(pasta_cliente: str,
         relatorio["pastas_criadas"].append(str(pasta_destino.relative_to(base)))
 
         # Fatiar procurações desta pasta
-        # NOMENCLATURA v2.2 (2026-05-11):
-        #   - Após número: PONTO (não hífen): "2." em vez de "2-"
-        #   - Entre campos: TRAVESSÃO (–) em vez de hífen ASCII
         for proc in conteudo["procuracoes"]:
             pag = proc["pagina"]
             contrato = proc["contrato"]
@@ -441,9 +438,9 @@ def fase_f_montar_estrutura(pasta_cliente: str,
         # Replicar HISCRE do benefício
         hiscre_path = docs_comuns.get(f"HISCRE_{benef}") or docs_comuns.get("HISCRE")
         if hiscre_path and os.path.exists(hiscre_path):
-            nome_hiscre = (f"7. Histórico de pagamento {benef}.pdf"
+            nome_hiscre = (f"7. Histórico de créditos {benef}.pdf"
                           if multi_beneficio
-                          else "7. Histórico de pagamento.pdf")
+                          else "7. Histórico de créditos.pdf")
             shutil.copy2(hiscre_path, pasta_destino / nome_hiscre)
 
         # Gerar ESTUDO.docx
@@ -462,6 +459,42 @@ def fase_f_montar_estrutura(pasta_cliente: str,
             }
         )
         relatorio["estudos_gerados"].append(str(destino_estudo.relative_to(base)))
+
+        # Gerar CALCULO_INDEBITO.xlsx (regra fixa do escritório, 13/05/2026):
+        # cada pasta de ação tem seu cálculo automático pré-gerado. A skill
+        # `inicial-nao-contratado` lê esse Excel para usar como valor da causa
+        # (em vez de estimar). Pula RMC/RCC porque o regime de cálculo é
+        # diferente (cobra-se restituição do limite usado do cartão, não
+        # parcelas mensais).
+        _eh_rmc_rcc = ("RMC-RCC" in nome_pasta_acao.upper()
+                       or "RMC/RCC" in nome_pasta_acao.upper())
+        if not _eh_rmc_rcc:
+            try:
+                import sys as _sys
+                _skills_common = os.path.normpath(
+                    os.path.join(os.path.dirname(__file__), "..", "..", "_common"))
+                if _skills_common not in _sys.path:
+                    _sys.path.insert(0, _skills_common)
+                from calculadora_indebito import (
+                    gerar_excel_indebito, NOME_CANONICO_EXCEL_KIT)
+                # Junta todos os contratos dos componentes (que são os contratos
+                # autorizados pelas procurações nesta pasta de ação)
+                contratos_pasta = []
+                for comp in conteudo["componentes"]:
+                    for c in comp.get("contratos", []):
+                        contratos_pasta.append(c)
+                if contratos_pasta:
+                    destino_xlsx = pasta_destino / NOME_CANONICO_EXCEL_KIT
+                    gerar_excel_indebito(
+                        contratos=contratos_pasta,
+                        cliente_nome=cliente_nome,
+                        output_path=str(destino_xlsx),
+                    )
+                    relatorio.setdefault("calculos_gerados", []).append(
+                        str(destino_xlsx.relative_to(base)))
+            except Exception as _e_calc:
+                relatorio.setdefault("calculos_erros", []).append(
+                    f"{nome_pasta_acao}: {type(_e_calc).__name__}: {_e_calc}")
 
     return relatorio
 
@@ -498,23 +531,25 @@ def _humanizar_banco(chave: str) -> str:
     return chave.replace("_", " ").title()
 
 
-def _nome_doc_comum(tipo: str, nome_pessoa: str = "") -> str:
-    """Nomenclatura v2.2 (2026-05-11):
-      - Documentos principais: ponto após número (`3.` `4.` `5.`)
-      - Subdocumentos: espaço-hífen-espaço como separador antes do nome
-      - Quando há subdoc por pessoa (rogado, testemunhas, declarante terceiro),
-        adiciona o nome dela ao fim: '3.1 - RG e CPF do rogado - NOME.pdf'
+def _nome_doc_comum(tipo: str) -> str:
+    """Nomes canônicos v2.2 (2026-05-11) — ponto após número, travessão na procuração.
+
+    Nota: DOC_ROGADO/TESTEMUNHA_* nascem com descritor genérico ("do rogado",
+    "da testemunha 1") porque o pipeline cria os arquivos ANTES de extrair o
+    nome real do RG. O fluxo posterior (Fase 11+ ou agente) deve renomear
+    adicionando o sufixo " - NOME COMPLETO" — ex.: "3.1 - RG e CPF do rogado -
+    SANTANA DE SOUZA SERVALHO.pdf". Regras completas em
+    `references/regras-nomenclatura.md`.
     """
-    sufixo_nome = f" - {nome_pessoa}" if nome_pessoa else ""
     mapa = {
         "RG_CPF": "3. RG e CPF.pdf",
-        "DOC_ROGADO": f"3.1 - RG e CPF do rogado{sufixo_nome}.pdf",
-        "TESTEMUNHA_1": f"3.2 - RG e CPF da testemunha 1{sufixo_nome}.pdf",
-        "TESTEMUNHA_2": f"3.3 - RG e CPF da testemunha 2{sufixo_nome}.pdf",
+        "DOC_ROGADO": "3.1 - RG e CPF do rogado.pdf",
+        "TESTEMUNHA_1": "3.2 - RG e CPF da testemunha 1.pdf",
+        "TESTEMUNHA_2": "3.3 - RG e CPF da testemunha 2.pdf",
         "DECLARACAO_HIPOSSUFICIENCIA": "4. Declaração de hipossuficiência.pdf",
         "COMPROVANTE_RESIDENCIA": "5. Comprovante de residência.pdf",
-        "DECLARACAO_RESIDENCIA_TERCEIRO": f"5.1 - Declaração de domicílio{sufixo_nome}.pdf",
-        "RG_TERCEIRO": f"5.2 - RG do declarante terceiro{sufixo_nome}.pdf",
+        "DECLARACAO_RESIDENCIA_TERCEIRO": "5.1 - Declaração de domicílio.pdf",
+        "RG_TERCEIRO": "5.2 - RG do declarante terceiro.pdf",
     }
     return mapa.get(tipo, f"_{tipo}.pdf")
 

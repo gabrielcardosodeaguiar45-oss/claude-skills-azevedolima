@@ -473,6 +473,106 @@ def gerar_excel_indebito(
     return output_path
 
 
+# ========================================
+# Leitura de Excel existente
+# ========================================
+
+def ler_total_geral_xlsx(path: str) -> Optional[Dict]:
+    """Lê o 'TOTAL GERAL DA AÇÃO' de um Excel gerado por `gerar_excel_indebito`.
+
+    Procura na aba 'RESUMO' a linha cujo texto da coluna A contém
+    "TOTAL GERAL" e pega o valor da coluna H.
+
+    Returns:
+        dict com {
+            'total_geral': float,
+            'subtotal_dobrado': float,
+            'dano_moral': float,
+            'data_apuracao': str,  # do cabeçalho da planilha
+        } ou None se não conseguir parsear.
+    """
+    from openpyxl import load_workbook
+    if not os.path.exists(path):
+        return None
+    try:
+        wb = load_workbook(path, read_only=True, data_only=True)
+        if 'RESUMO' not in wb.sheetnames:
+            return None
+        ws = wb['RESUMO']
+        total_geral = None
+        subtotal_dobrado = None
+        dano_moral = None
+        data_apuracao = None
+        for row in ws.iter_rows(min_row=1, values_only=True):
+            if not row:
+                continue
+            primeira = row[0]
+            if primeira is None:
+                continue
+            txt = str(primeira)
+            if 'Data de apuração' in txt or 'Data de apura' in txt:
+                # Extrai 'Data de apuração: dd/mm/yyyy'
+                m = re.search(r'(\d{2}/\d{2}/\d{4})', txt)
+                if m:
+                    data_apuracao = m.group(1)
+            if 'TOTAL GERAL DA AÇÃO' in txt.upper() or 'TOTAL GERAL DA ACAO' in txt.upper():
+                # Valor está na coluna 8 (H), índice 7
+                if len(row) > 7 and row[7] is not None:
+                    try:
+                        total_geral = float(row[7])
+                    except (TypeError, ValueError):
+                        pass
+            elif 'SUBTOTAL' in txt.upper():
+                if len(row) > 7 and row[7] is not None:
+                    try:
+                        subtotal_dobrado = float(row[7])
+                    except (TypeError, ValueError):
+                        pass
+            elif 'DANO MORAL' in txt.upper():
+                if len(row) > 7 and row[7] is not None:
+                    try:
+                        dano_moral = float(row[7])
+                    except (TypeError, ValueError):
+                        pass
+        if total_geral is None:
+            return None
+        return {
+            'total_geral': total_geral,
+            'subtotal_dobrado': subtotal_dobrado,
+            'dano_moral': dano_moral,
+            'data_apuracao': data_apuracao,
+        }
+    except Exception:
+        return None
+
+
+# Nome canônico do arquivo Excel gerado pela kit-juridico (sem cliente/banco
+# no nome — uma pasta de ação = um cálculo). A inicial procura por esse nome
+# para reusar o cálculo.
+NOME_CANONICO_EXCEL_KIT = 'CALCULO_INDEBITO.xlsx'
+
+
+def localizar_excel_indebito(pasta_acao: str) -> Optional[str]:
+    """Procura um Excel de cálculo já gerado na pasta_acao.
+
+    Tenta nesta ordem:
+      1. CALCULO_INDEBITO.xlsx (nome canônico kit-juridico)
+      2. Qualquer CALCULO_*.xlsx (compatibilidade com Excels gerados pela
+         inicial em sessões anteriores)
+    """
+    if not pasta_acao or not os.path.isdir(pasta_acao):
+        return None
+    # 1. Nome canônico
+    canonico = os.path.join(pasta_acao, NOME_CANONICO_EXCEL_KIT)
+    if os.path.exists(canonico):
+        return canonico
+    # 2. Qualquer CALCULO_*.xlsx
+    for f in os.listdir(pasta_acao):
+        if f.upper().startswith('CALCULO_') and f.lower().endswith('.xlsx'):
+            return os.path.join(pasta_acao, f)
+    return None
+
+
 if __name__ == '__main__':
     import sys, io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')

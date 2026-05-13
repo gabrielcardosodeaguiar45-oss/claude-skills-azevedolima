@@ -455,7 +455,48 @@ NÃO grifar:
 
 Implementação técnica: o helper `substituir_in_run(p, mapa, grifo=True)` aplica o highlight automaticamente nos caracteres SUBSTITUÍDOS (não nos preexistentes). Para runs criados manualmente (ex.: polo passivo com 5 runs separados, blocos repetíveis duplicados), aplicar `<w:highlight w:val="yellow"/>` no rPr antes de inserir no XML.
 
-### 9-terdecies. **PLANILHA DE CÁLCULO DE INDÉBITO em EXCEL (gravado 13/05/2026)**
+### 9-terdecies. **PLANILHA DE CÁLCULO DE INDÉBITO em EXCEL (gravado 13/05/2026, refinado mesma data)**
+
+A planilha de cálculo do indébito é gerada pela **skill `kit-juridico`** (na fase F — montar estrutura), uma por pasta de ação. A skill `inicial-nao-contratado` **lê** esse Excel para usar o TOTAL GERAL como valor da causa, em vez de estimar.
+
+**Fluxo do fluxo (gravado 13/05/2026):**
+
+```
+kit-juridico fase F (organizar)              inicial-nao-contratado
+─────────────────────────────────             ────────────────────────
+  para cada pasta de ação:                    para cada inicial:
+    cria pasta BENEFÍCIO/BANCO/                 procura CALCULO_INDEBITO.xlsx
+    copia procurações                          se achou:
+    copia docs comuns                            lê TOTAL GERAL DA AÇÃO
+    grifa HISCON                                 usa como valor_causa
+    gera ESTUDO.docx                           senão:
+    gera CALCULO_INDEBITO.xlsx  ←──┐            usa PDF de cálculo ou estima
+                                    │              + gera fallback CALCULO_<base>.xlsx
+                                    └─────────  decide foro AL pelo valor
+```
+
+**Hierarquia de leitura do valor da causa** (em `_pipeline_caso_al.py`):
+
+1. **`CALCULO_INDEBITO.xlsx`** na pasta de ação → autoritativo (kit-juridico)
+2. **Qualquer `CALCULO_*.xlsx`** na pasta (compatibilidade com Excels gerados pela inicial em sessões anteriores)
+3. **PDF de cálculo** (legado — formato Cálculo Jurídico)
+4. **Estimativa**: soma dos dobros + dano moral
+
+**Helpers em `_common/calculadora_indebito.py`:**
+
+| Função | Uso |
+|---|---|
+| `gerar_excel_indebito(contratos, cliente_nome, output_path)` | Gera planilha completa |
+| `calcular_contrato(contrato)` | Cálculo isolado de 1 contrato |
+| `calcular_dano_moral(n_contratos)` | R\$ 15k (1) ou R\$ 5k×N (2+) |
+| `ler_total_geral_xlsx(path)` | Lê TOTAL GERAL DA AÇÃO de um Excel |
+| `localizar_excel_indebito(pasta)` | Busca CALCULO_INDEBITO.xlsx → qualquer CALCULO_*.xlsx |
+
+**Para que a inicial use o Excel correto:** o usuário deve rodar a `kit-juridico` PRIMEIRO (que organiza pasta + gera Excel canônico), depois rodar a inicial.
+
+---
+
+**(Conteúdo histórico abaixo — implementação V1, antes da migração para kit-juridico):**
 
 Junto com cada inicial AL/MG/AM/BA (consignado, RMC, RCC), a skill agora gera automaticamente uma **planilha Excel `CALCULO_<nome>.xlsx`** na mesma pasta do DOCX, com cálculo detalhado mensal dos descontos atualizados.
 
