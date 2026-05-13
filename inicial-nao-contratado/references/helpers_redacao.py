@@ -584,6 +584,14 @@ def preencher_bloco_fatico_formato_mg(doc, contratos_fmt: List[Dict],
     except Exception:
         _ext = lambda v: ''
 
+    # Detectar múltiplos bancos para diferenciar cada sub-item
+    bancos_distintos = {
+        (c.get('banco_nome') or c.get('banco') or '').strip()
+        for c in contratos_fmt
+        if (c.get('banco_nome') or c.get('banco'))
+    }
+    multi_banco = len(bancos_distintos) >= 2
+
     def _montar_subitem(c):
         try:
             vp = float((c.get('valor_parcela_str') or '').replace('.', '').replace(',', '.'))
@@ -595,6 +603,8 @@ def preencher_bloco_fatico_formato_mg(doc, contratos_fmt: List[Dict],
             ve_ext = _ext(ve)
         except Exception:
             ve_ext = ''
+        # Multi-banco: cada sub-item identifica o banco real do contrato.
+        banco_do_contrato = (c.get('banco_nome') or c.get('banco') or nome_banco) if multi_banco else nome_banco
         return (
             f'Do contrato nº {c.get("numero", "")}: a primeira parcela '
             f'descontada do benefício da parte autora foi na competência '
@@ -602,7 +612,7 @@ def preencher_bloco_fatico_formato_mg(doc, contratos_fmt: List[Dict],
             f'{c.get("qtd_parcelas", "")} parcelas, no valor de '
             f'R$ {c.get("valor_parcela_str", "")} ({vp_ext}), relativas a um '
             f'empréstimo consignado no valor de R$ {c.get("valor_emprestado_str", "")} '
-            f'({ve_ext}), cuja operação foi realizada pelo {nome_banco}, ora requerido.'
+            f'({ve_ext}), cuja operação foi realizada pelo {banco_do_contrato}, ora requerido.'
         )
 
     n_contratos = len(contratos_fmt)

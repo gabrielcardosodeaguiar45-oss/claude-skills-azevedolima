@@ -508,7 +508,7 @@ Resultado:
 
 Esse mecanismo é o "Caminho B" no `_preencher_bloco_fatico`. O "Caminho A" (sub-blocos "Do contrato sob n° xxxxxxxx") fica para templates `2bancos` que tenham essa estrutura.
 
-### 9-nonies. **INTRO FÁTICA MULTI-BANCO: helper `aplicar_intro_fatica` em helpers_redacao (gravado 12/05/2026)**
+### 9-nonies. **INTRO FÁTICA MULTI-BANCO + BLOCO FÁTICO POR BANCO: helpers em `helpers_redacao` (gravado 12/05/2026)**
 
 Caso paradigma: CICERO/Bradesco+Mercantil (3 contratos em 2 bancos).
 
@@ -522,9 +522,11 @@ E cada bloco fático a)/b)/c) menciona o banco real do contrato em "cuja operaç
 - 1 banco → chama `substituir_intro_contratos` clássico
 - 2+ bancos → chama `substituir_intro_contratos_multi_banco` (lista de grupos)
 
-Usado pelos 3 pipelines (BA + AM + AL) — chamadas únicas refatoradas em 12/05/2026.
+Usado pelos **3 pipelines (BA + AM + AL/MG)** — chamadas únicas refatoradas em 12/05/2026.
 
-**Cuidado com formatar_contrato_para_template:** após formatação, o nome do banco vem no campo `'banco'`, não `'banco_nome'`. O helper trata ambos (fallback `c.get('banco_nome') or c.get('banco') or fallback_banco_nome`).
+**Cuidado com formatar_contrato_para_template:** após formatação, o nome do banco vem no campo `'banco'`, não `'banco_nome'`. Os helpers tratam ambos (fallback `c.get('banco_nome') or c.get('banco') or fallback_banco_nome`).
+
+**Formato MG / AL-2bancos com sub-itens "Do contrato nº..."**: a função `preencher_bloco_fatico_formato_mg` também detecta multi-banco e, para cada sub-item, identifica o banco real do contrato. Quando todos os contratos são do mesmo banco, mantém o `nome_banco` único passado de fora (compatibilidade com o piloto MG original).
 
 ### 9-decies. **ROTEAMENTO FEDERAL/ESTADUAL POR VALOR DA CAUSA — AL (gravado 12/05/2026)**
 
