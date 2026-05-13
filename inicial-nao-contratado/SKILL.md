@@ -528,6 +528,30 @@ Usado pelos **3 pipelines (BA + AM + AL/MG)** — chamadas únicas refatoradas e
 
 **Formato MG / AL-2bancos com sub-itens "Do contrato nº..."**: a função `preencher_bloco_fatico_formato_mg` também detecta multi-banco e, para cada sub-item, identifica o banco real do contrato. Quando todos os contratos são do mesmo banco, mantém o `nome_banco` único passado de fora (compatibilidade com o piloto MG original).
 
+### 9-decies-bis. **BANCOS_CANONICOS: tolerância a espaços inseridos pelo parser HISCON (gravado 13/05/2026)**
+
+Caso paradigma: MARCIA AGIBANK ("AGIBAN K FINANC EIRA S A"), GEDALVA PENSAO SANTANDER ("SANTA NDER"), JOSEFA APOSENTADORIA INTER ("BANCO INTER SA"), JOSEFA PENSAO BRADESCO ("BANCO BRADE SCO SA") — 13/05/2026.
+
+O parser HISCON da `kit-juridico` insere espaços ALEATÓRIOS no meio de palavras quando há pequenos gaps no PDF entre letras. Resulta em nomes de banco como:
+
+- `SANTA NDER` (deveria ser SANTANDER)
+- `BANCO BRADE SCO SA` (BRADESCO)
+- `BANCO BRADE SCO FINANC IAMENT OS SA` (BRADESCO FINANCIAMENTOS)
+- `AGIBAN K FINANC EIRA S A` (AGIBANK FINANCEIRA)
+- `BANCO MERCA NTIL DO BRASIL SA` (MERCANTIL DO BRASIL)
+- `QI SOCIED ADE DE CREDIT O DIRETO` (QI SOCIEDADE DE CREDITO DIRETO)
+
+**Solução aplicada em `bancos_canonicos.py:resolver_banco`** (13/05/2026):
+1. **Tentativa 2a:** substring match com nome original (já existia)
+2. **Tentativa 2b (NOVA):** substring match comparando **AMBOS sem espaços** (`re.sub(r'\s+', '', ...)`). Resolve todos os casos acima sem precisar cadastrar dezenas de variantes.
+
+Antes de assumir que falta cadastro de banco, conferir se é só o problema do parser HISCON — o resolver agora tolera isso automaticamente.
+
+**Aliases adicionados em 13/05/2026:**
+- `BANCO SANTANDER`, `BANCO SANTANDER (BRASIL)`, `SANTANDER`, `SANTANDER FINANCIAMENTOS`, `SANTANDER FINANCIAMENTO`, `BANCO SANTANDER FINANCIAMENTO` → `santander`
+- `BANCO INTER`, `BANCO INTER S A`, `BANCO INTER SA`, `INTER` → `inter`
+- `BANCO INBURSA`, `INBURSA` → `inbursa`
+
 ### 9-decies. **ROTEAMENTO FEDERAL/ESTADUAL POR VALOR DA CAUSA — AL (gravado 12/05/2026)**
 
 Caso paradigma: ANAIZA PENSAO ITAU (R\$ 189.154,40), ANTONIO BRADESCO (R\$ 136.336,64).
