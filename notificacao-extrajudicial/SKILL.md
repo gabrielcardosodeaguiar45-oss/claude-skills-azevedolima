@@ -88,7 +88,7 @@ Os templates esperam placeholders `{{VARIAVEL}}` em MAIÚSCULAS. Vocabulário ca
 
 **Específicos por tese:**
 1. **Consignado/RMC/RCC:** `CONTRATO_NUMEROS`, `CONTRATO_VALOR_EMPRESTIMO`, `CONTRATO_QTD_PARCELAS`, `CONTRATO_VALOR_PARCELA`, `CONTRATO_DATA_INCLUSAO`, `CONTRATO_DATA_PRIMEIRO_DESCONTO`
-2. **Bradesco-Encargos/Tarifas/Capitalização/PE:** `RUBRICAS`, `DATA_INICIAL`, `DATA_FINAL`, `NUMERO_DESCONTOS`, `VALOR_TOTAL`
+2. **Bradesco-Encargos/Tarifas/Capitalização/PE:** `RUBRICAS` (os placeholders `DATA_INICIAL`, `DATA_FINAL`, `NUMERO_DESCONTOS`, `VALOR_TOTAL` foram REMOVIDOS dos templates em 13/05/2026 — o parágrafo "Tais descontos vêm ocorrendo, em síntese, no período aproximado de..." foi excluído porque o procurador prefere demonstrar os descontos diretamente via tabela anexa, sem repetir período/total em texto corrido)
 3. **Bradesco-PE (terceiros):** `TERCEIRO_NOME`, `TERCEIRO_CNPJ`, `TERCEIRO_LOGRADOURO`, `TERCEIRO_BAIRRO`, `TERCEIRO_MUNICIPIO`, `TERCEIRO_UF`, `TERCEIRO_CEP`
 
 ## API programática
