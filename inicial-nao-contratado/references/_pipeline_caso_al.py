@@ -1156,8 +1156,32 @@ def gerar_inicial_al(dados_caso: Dict, output_path: str) -> Dict:
         for ph in re.findall(r'xxxxxxxx|xxx,xx|xx parcelas|xx/xxxx', p.text):
             placeholders_residuais.append(ph)
 
+    # ---- Gerar planilha de cálculo de indébito (Excel) ----
+    # Regra fixa do escritório (13/05/2026): junto com cada inicial AL/MG,
+    # gerar planilha Excel com cálculo detalhado dos descontos atualizados
+    # pelo INPC + juros 1% a.m. simples + dobro (art. 42 CDC). Arquivo sai
+    # ao lado do DOCX com nome 'CALCULO_<base>.xlsx'.
+    excel_path = None
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                          '..', '..', '_common'))
+        from calculadora_indebito import gerar_excel_indebito
+        nome_inicial = os.path.splitext(os.path.basename(output_path))[0]
+        excel_path = os.path.join(os.path.dirname(output_path),
+                                   f'CALCULO_{nome_inicial.replace("INICIAL_", "")}.xlsx')
+        nome_cli = (autora or {}).get('nome', '') or 'Cliente'
+        gerar_excel_indebito(
+            contratos=contratos_fmt,
+            cliente_nome=nome_cli,
+            output_path=excel_path,
+        )
+    except Exception as e_calc:
+        alertas.append(f'⚠ Falha ao gerar planilha de cálculo: {e_calc}')
+        excel_path = None
+
     return {
         'output': output_path,
+        'excel_calculo': excel_path,
         'modificados': modificados,
         'placeholders_para_preencher_no_bloco': len(placeholders_residuais),
         'placeholders_amostra': placeholders_residuais[:10],

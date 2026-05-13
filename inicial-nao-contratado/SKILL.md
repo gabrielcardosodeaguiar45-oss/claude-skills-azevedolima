@@ -455,6 +455,39 @@ NÃO grifar:
 
 Implementação técnica: o helper `substituir_in_run(p, mapa, grifo=True)` aplica o highlight automaticamente nos caracteres SUBSTITUÍDOS (não nos preexistentes). Para runs criados manualmente (ex.: polo passivo com 5 runs separados, blocos repetíveis duplicados), aplicar `<w:highlight w:val="yellow"/>` no rPr antes de inserir no XML.
 
+### 9-terdecies. **PLANILHA DE CÁLCULO DE INDÉBITO em EXCEL (gravado 13/05/2026)**
+
+Junto com cada inicial AL/MG/AM/BA (consignado, RMC, RCC), a skill agora gera automaticamente uma **planilha Excel `CALCULO_<nome>.xlsx`** na mesma pasta do DOCX, com cálculo detalhado mensal dos descontos atualizados.
+
+**Regime fixo** (conforme pedido nas iniciais do escritório):
+* **Correção monetária:** INPC (responsabilidade civil — STJ Tema 905)
+* **Juros de mora:** 1% a.m. simples (juros legais — art. 406 CC c/c CTN)
+* **Dobro:** art. 42, p. único, CDC
+* **Dano moral:** R\$ 15.000 (1 contrato) ou R\$ 5.000 × N contratos (2+)
+
+**Estrutura da planilha:**
+
+* **Aba `RESUMO`** — uma linha por contrato com totais (descontado, corrigido+juros, em dobro), linha SUBTOTAL com soma, linha DANO MORAL e linha **TOTAL GERAL DA AÇÃO** (subtotal em dobro + dano moral).
+* **Aba por contrato** — tabela mensal de cada parcela descontada com: competência, valor original, fator INPC, valor corrigido, meses para juros, juros 1% a.m., total simples e total em dobro.
+
+**Arquivos da implementação:**
+
+| Arquivo | Conteúdo |
+|---|---|
+| `skills/_common/dados/inpc_bcb_serie188.json` | Tabela INPC mensal oficial BCB (jan/2017 em diante). Atualizar periodicamente via API BCB. |
+| `skills/_common/indices_oficiais.py` | `inpc_acumulado_entre()`, `corrigir_inpc()`, `juros_simples_mes()` |
+| `skills/_common/calculadora_indebito.py` | `calcular_contrato()`, `calcular_dano_moral()`, `gerar_excel_indebito()` |
+| `_pipeline_caso_al.py` linha 1149 | Hook após `doc.save()` que chama `gerar_excel_indebito()` |
+
+**Não se aplica a:** skill `inicial-bradesco` (Patrick AM — Bradesco encargos/tarifas/capitalização/PE tem regime próprio, cálculo é feito por outra rota).
+
+**Atualização periódica do INPC:**
+
+```bash
+curl -sL "https://api.bcb.gov.br/dados/serie/bcdata.sgs.188/dados?formato=json&dataInicial=01/01/2017&dataFinal=31/12/2026" \\
+     -o skills/_common/dados/inpc_bcb_serie188.json
+```
+
 ### 9-undecies. **REGRA DE CIDADE FIXA AL → SEMPRE JEF FEDERAL (gravado 13/05/2026)**
 
 Decisão operacional do escritório: clientes residentes em **Viçosa/AL**, **São Sebastião/AL** ou **Traipu/AL** **sempre ajuízam no JEF Federal**, independente do valor da causa. Quando o valor excede 60 SM (R\$ 91.080), inclui-se pedido expresso de **renúncia ao excedente** (Art. 17, § 4º, Lei 10.259/01).
