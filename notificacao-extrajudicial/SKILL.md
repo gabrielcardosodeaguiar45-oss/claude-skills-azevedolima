@@ -34,12 +34,12 @@ Toda notificação gerada pela `_run_notificacoes.py` agora sai dentro de uma **
     ├── 2- Procuração - Contrato 0123471622742.pdf ← procurações dos contratos do banco
     ├── 2- Procuração - Contrato 0123471622766.pdf
     ├── 2- Procuração - Contrato 016178952.pdf
-    ├── 3- RG e CPF.pdf                            ← docs pessoais do cliente
-    ├── 4- Declaração de hipossuficiência.pdf
-    ├── 5- Comprovante de residência.pdf
+    ├── 3- RG e CPF.pdf                            ← identidade do cliente
     ├── 6- Histórico de empréstimo (grifado).pdf   ← HISCON
     └── 7- Histórico de pagamento.pdf              ← HISCRE
 ```
+
+> **REGRA OPERACIONAL (gravada 13/05/2026, Gabriel):** o dossiê extrajudicial NÃO inclui declaração de hipossuficiência nem comprovante de residência — esses ficam reservados para a inicial. A notificação extrajudicial só precisa demonstrar (a) identidade do notificante (RG/CPF), (b) outorga de poderes (procurações), (c) existência dos descontos (HISCON + HISCRE) e (d) qualificação do procurador (OAB).
 
 **Cadastro de OAB** em `assets/oabs/` (PDFs das carteiras):
 - `OAB TIAGO.pdf` — usado quando advogado.chave == 'tiago' (AL Federal/Estadual)

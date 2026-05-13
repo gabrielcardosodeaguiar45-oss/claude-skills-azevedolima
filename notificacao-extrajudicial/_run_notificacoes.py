@@ -572,8 +572,13 @@ def montar_dossie_notificacao(pasta_acao_abs: str, output_dir_banco: str,
                 )
                 copiados += 1
 
-    # 3. Documentos comuns na pasta_acao (RG/CPF, Hipossuficiência, Comp.
-    # Residência, HISCON grifado, HISCRE/Histórico de pagamento)
+    # 3. Documentos comuns na pasta_acao — APENAS:
+    #    - RG / CPF (identidade do cliente)
+    #    - HISCON (Histórico de empréstimo grifado) — comprova os descontos
+    #    - HISCRE (Histórico de pagamento/crédito) — extrato dos descontos
+    # Hipossuficiência e Comprovante de Residência foram REMOVIDOS do dossiê
+    # extrajudicial (13/05/2026, Gabriel) — não são necessários para notificar
+    # o banco; ficam para a inicial.
     if os.path.isdir(pasta_acao_abs):
         for nome in os.listdir(pasta_acao_abs):
             if not nome.lower().endswith('.pdf'):
@@ -582,9 +587,12 @@ def montar_dossie_notificacao(pasta_acao_abs: str, output_dir_banco: str,
             # Pula procurações (já tratadas acima)
             if 'PROCURA' in nome_upper:
                 continue
-            # Inclui se for documento comum
+            # Pula hipossuficiência e comprovante de residência (decisão 13/05/2026)
+            if any(k in nome_upper for k in ['HIPOSS', 'COMPROV', 'RESID']):
+                continue
+            # Inclui se for RG/CPF ou HISCON/HISCRE
             if any(k in nome_upper for k in [
-                'RG', 'CPF', 'HIPOSS', 'COMPROV', 'RESID',
+                'RG', 'CPF',
                 'HIST', 'EMPRESTIMO', 'EMPRÉSTIMO', 'PAGAMENTO', 'CRÉDITO', 'CREDITO',
             ]):
                 shutil.copy2(
