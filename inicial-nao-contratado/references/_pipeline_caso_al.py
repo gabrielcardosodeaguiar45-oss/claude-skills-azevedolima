@@ -358,9 +358,18 @@ def montar_dados_inicial_al(pasta_cliente: str, autora: Dict, comarca: str,
         fonte_vc = (f'estimado: soma dos dobros (R$ {soma_dobros:,.2f}) + dano '
                     f'moral (R$ {dm["total"]:,.2f}) — sem PDF de cálculo')
 
-    # 11. Decidir foro
-    decisao_foro = decidir_foro_al(vc, forcar=forcar_foro)
+    # 11. Decidir foro — `cidade_autor` é levada em conta para a regra de
+    # cidade fixa (Viçosa/São Sebastião/Traipu → sempre Federal com renúncia
+    # ao excedente quando > 60 SM).
+    cidade_autora = autora.get('cidade') if isinstance(autora, dict) else None
+    decisao_foro = decidir_foro_al(vc, forcar=forcar_foro, cidade_autor=cidade_autora)
     foro = decisao_foro['foro']
+    if decisao_foro.get('renuncia_ao_excedente'):
+        alertas.append(
+            f'ℹ️ Foro Federal imposto por cidade fixa ({cidade_autora}), valor '
+            f'R$ {vc:,.2f} excede 60 SM — INICIAL DEVE CONTER PEDIDO EXPRESSO '
+            f'DE RENÚNCIA AO EXCEDENTE (Art. 17, § 4º, Lei 10.259/01).'
+        )
 
     # 12. Selecionar template
     # uf_override permite reusar este pipeline para outras UFs com templates
@@ -647,24 +656,73 @@ def _preencher_bloco_fatico(doc, contratos_fmt: List[Dict], cenario: Dict,
             bancos_distintos = {s.get('banco_nome', '').strip() for s in substituicoes[:n]
                                 if s.get('banco_nome')}
             multi_banco = len(bancos_distintos) >= 2
+
+            # === NOVO LAYOUT (gravado 13/05/2026):
+            # Em vez de N parágrafos repetindo "a) No que diz respeito ao
+            # referido empréstimo, cumpre informar que a primeira parcela...",
+            # geramos:
+            #   - UM parágrafo cabeçalho: "No que diz respeito ao referido
+            #     empréstimo, cumpre informar:"
+            #   - N parágrafos sub-itens: "a) o contrato de nº NNN, a primeira
+            #     parcela descontada do benefício..."
+            # O cabeçalho fica antes da primeira cópia. As cópias têm sua
+            # primeira frase reescrita para começar com "[letra]) o contrato
+            # de nº XXX, a primeira parcela descontada" — e o "contrato n°
+            # xxxxxxx," do meio é removido (porque já apareceu no início).
+
+            # 1) Inserir parágrafo CABEÇALHO antes da primeira cópia
+            cabecalho = deepcopy(elem_template)
+            # Limpa o conteúdo de runs do cabeçalho preservando pPr
+            _W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+            for r in list(cabecalho.findall(f'{_W}r')):
+                cabecalho.remove(r)
+            # Adiciona run novo com o texto cabeçalho (em Cambria + grifo amarelo)
+            from lxml import etree as _et
+            _run_cab = _et.SubElement(cabecalho, f'{_W}r')
+            _rPr_cab = _et.SubElement(_run_cab, f'{_W}rPr')
+            _et.SubElement(_rPr_cab, f'{_W}rFonts',
+                           {f'{_W}ascii': 'Cambria', f'{_W}hAnsi': 'Cambria'})
+            _et.SubElement(_rPr_cab, f'{_W}highlight', {f'{_W}val': 'yellow'})
+            _t_cab = _et.SubElement(_run_cab, f'{_W}t',
+                                     {'{http://www.w3.org/XML/1998/namespace}space': 'preserve'})
+            _t_cab.text = 'No que diz respeito ao referido empréstimo, cumpre informar:'
+            # Insere o cabeçalho ANTES do primeiro elemento
+            elem_template.addprevious(cabecalho)
+            feitos += 1
+
+            # 2) Para cada cópia (incluindo o template original), reescrever
+            #    o início "No que diz respeito ao referido empréstimo, cumpre
+            #    informar que a primeira parcela descontada" → "[letra]) o
+            #    contrato de nº [NUM], a primeira parcela descontada".
             for idx, (elem, s) in enumerate(zip(elementos, substituicoes[:n])):
-                # 1) Prefixo "a) " / "b) " / ... no início do parágrafo (antes de "No que diz")
-                prefixo = f'{_letra(idx)}) '
-                substituir_in_run(elem,
-                    {'No que diz respeito ao referido empréstimo':
-                     f'{prefixo}No que diz respeito ao referido empréstimo',
-                     'No que diz respeito aos referidos empréstimos':
-                     f'{prefixo}No que diz respeito aos referidos empréstimos'},
-                    grifo=True)
-                # Quando há múltiplos bancos, substituir "banco xxxxx" pelo
-                # nome REAL do banco deste contrato — ANTES da sequência padrão
-                # rodar (para não cair no banco-principal).
+                letra = _letra(idx)
+                numero = s.get('numero', '')
+
+                # Frase de abertura — singular + plural
+                # (template usa singular; plural só por segurança)
+                substituir_in_run(elem, {
+                    'No que diz respeito ao referido empréstimo, cumpre informar que a primeira parcela':
+                        f'{letra}) o contrato de nº {numero}: a primeira parcela',
+                    'No que diz respeito aos referidos empréstimos, cumpre informar que a primeira parcela':
+                        f'{letra}) o contrato de nº {numero}: a primeira parcela',
+                }, grifo=True)
+
+                # Remove "contrato n° xxxxxxx, " do meio (número já aparece
+                # no início, evita duplicidade)
+                substituir_in_run(elem, {
+                    'contrato n° xxxxxxx, cuja operação':
+                        'cuja operação',
+                }, grifo=True)
+
+                # Multi-banco: cada sub-item identifica o banco real do contrato
                 if multi_banco and s.get('banco_nome'):
                     nome_banco_contrato = s['banco_nome'].upper()
                     substituir_in_run(elem, {
                         'cuja operação foi realizada pelo banco xxxxx':
                         f'cuja operação foi realizada pelo {nome_banco_contrato}',
                     }, grifo=True)
+
+                # Substituições padrão dos xxxxx
                 try:
                     vp = float(s['valor_parcela'].replace('.', '').replace(',', '.'))
                     vp_ext = _ext(vp)
@@ -683,11 +741,10 @@ def _preencher_bloco_fatico(doc, contratos_fmt: List[Dict], cenario: Dict,
                     ('competência xxxxxxxx', f'competência {s["competencia_inicio"]}'),
                     ('xx parcelas', f'{s["qtd_parcelas"]} parcelas'),
                     ('encerradas em xx/xxxx', f'encerradas em {s["competencia_fim"]}'),
-                    ('contrato n° xxxxxxx', f'contrato n° {s["numero"]}'),
+                    # 'contrato n° xxxxxxx' já foi tratado acima (removido)
                     ('cuja operação foi realizada pelo banco xxxxx',
                      f'cuja operação foi realizada pelo {nome_banco}'),
                 ]
-                # Lê o texto agregado dos w:t descendentes para checar match
                 _ns = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
                 texto_elem = ''.join(t.text or '' for t in elem.iter(f'{_ns}t'))
                 for old, new in sequencia:

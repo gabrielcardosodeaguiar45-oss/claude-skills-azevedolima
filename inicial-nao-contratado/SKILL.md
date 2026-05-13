@@ -455,6 +455,54 @@ NÃO grifar:
 
 Implementação técnica: o helper `substituir_in_run(p, mapa, grifo=True)` aplica o highlight automaticamente nos caracteres SUBSTITUÍDOS (não nos preexistentes). Para runs criados manualmente (ex.: polo passivo com 5 runs separados, blocos repetíveis duplicados), aplicar `<w:highlight w:val="yellow"/>` no rPr antes de inserir no XML.
 
+### 9-undecies. **REGRA DE CIDADE FIXA AL → SEMPRE JEF FEDERAL (gravado 13/05/2026)**
+
+Decisão operacional do escritório: clientes residentes em **Viçosa/AL**, **São Sebastião/AL** ou **Traipu/AL** **sempre ajuízam no JEF Federal**, independente do valor da causa. Quando o valor excede 60 SM (R\$ 91.080), inclui-se pedido expresso de **renúncia ao excedente** (Art. 17, § 4º, Lei 10.259/01).
+
+**Implementação:** `escritorios.cidade_forca_foro_federal(cidade)` retorna True para essas 3 cidades (com normalização Unicode tolerante a acento/maiúsculas). A função `decidir_foro_al(valor, forcar, cidade_autor)` aplica a hierarquia:
+
+1. `forcar` (override manual via `perfil_chave='AL_FEDERAL'` ou `'AL_ESTADUAL'`) — sempre vence
+2. `cidade_autor` em `CIDADES_AL_SEMPRE_FEDERAL` — JEF Federal com renúncia se > 60 SM
+3. Valor da causa ≤ 60 SM → Federal; > 60 SM → Estadual
+
+Quando a regra de cidade impõe Federal mas o valor excede 60 SM, retorna `renuncia_ao_excedente=True` e o pipeline acrescenta alerta na inicial: *"INICIAL DEVE CONTER PEDIDO EXPRESSO DE RENÚNCIA AO EXCEDENTE (Art. 17, § 4º, Lei 10.259/01)"*.
+
+**Para usuário:** ao gerar inicial, passar `perfil_chave='AL_FEDERAL'` para clientes dessas 3 cidades — independente do valor. Se passar `AL_ESTADUAL`, o `forcar` vence (você se responsabiliza pela decisão).
+
+### 9-duodecies. **BLOCO FÁTICO MÚLTIPLOS CONTRATOS: cabeçalho + sub-itens (gravado 13/05/2026)**
+
+Caso paradigma: ANAIZA PENSAO ITAU (10 contratos a–j).
+
+Mudança no layout do bloco fático quando há ≥2 contratos do mesmo banco:
+
+**Antes (até 12/05/2026):**
+```
+a) No que diz respeito ao referido empréstimo, cumpre informar que a primeira
+   parcela descontada... contrato n° 622902175, cuja operação foi realizada...
+b) No que diz respeito ao referido empréstimo, cumpre informar que a primeira
+   parcela descontada... contrato n° 626302197, cuja operação foi realizada...
+```
+
+Repetição do "No que diz respeito ao referido empréstimo, cumpre informar que" em CADA bloco gerava texto pesado e redundante.
+
+**Agora (13/05/2026):**
+```
+No que diz respeito ao referido empréstimo, cumpre informar:
+a) o contrato de nº 622902175: a primeira parcela descontada do benefício...
+   cuja operação foi realizada pelo BANCO ITAU CONSIGNADO SA, ora requerido.
+b) o contrato de nº 626302197: a primeira parcela descontada...
+```
+
+Estrutura: um parágrafo **cabeçalho** ("No que diz respeito ao referido empréstimo, cumpre informar:") + N **sub-itens** "[letra]) o contrato de nº NNN: a primeira parcela...".
+
+**Implementação em `_pipeline_caso_al.py:_preencher_bloco_fatico` (caminho B):**
+- Cria parágrafo cabeçalho (deepcopy do template + limpa runs + adiciona texto fixo)
+- Insere ANTES da primeira cópia
+- Cada sub-item: substitui "No que diz respeito ao referido empréstimo, cumpre informar que a primeira parcela" → "[letra]) o contrato de nº [NUM]: a primeira parcela"
+- Remove "contrato n° xxxxxxx, " do meio (número já apareceu no início, evita duplicidade)
+
+Para N=1 (1 só contrato) NÃO se aplica — o parágrafo singular fica como está.
+
 ### 9-septies. **TEMPLATES AL/MG: literais piloto + xxxxx no bloco fático (gravado 12/05/2026)**
 
 Caso paradigma: ANAIZA / ANTONIO / CICERO (AL_FEDERAL e AL_ESTADUAL, 12/05/2026).
