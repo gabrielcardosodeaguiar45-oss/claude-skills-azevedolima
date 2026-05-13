@@ -252,16 +252,26 @@ def gerar_excel_indebito(
     data_apuracao: Optional[date] = None,
     taxa_juros_mes_pct: float = 1.0,
 ) -> str:
-    """Gera planilha Excel com cálculo de indébito por contrato.
+    """Gera planilha Excel com cálculo de indébito em ABA ÚNICA — pronta para
+    exportar como PDF.
 
-    Cada contrato vira uma ABA com a tabela mensal de parcelas + uma aba
-    "RESUMO" com totais e o total geral.
+    Estrutura da aba (de cima para baixo):
+      - Título com cliente e data de apuração
+      - Para CADA contrato:
+          • Cabeçalho do contrato (banco, número, situação, valor parcela)
+          • Tabela mensal: competência | valor | fator INPC | corrigido |
+                            meses juros | juros 1% a.m. | total simples |
+                            total em dobro
+          • Linha SUBTOTAL do contrato
+      - SUBTOTAL GERAL (somatório de todos os contratos em dobro)
+      - DANO MORAL (regra: 15k×1 ou 5k×N)
+      - TOTAL GERAL DA AÇÃO
 
     Args:
-        contratos: lista de dicts (formato extrator_hiscon)
-        cliente_nome: nome para exibir no cabeçalho
+        contratos: lista de dicts (formato extrator_hiscon ou kit-juridico)
+        cliente_nome: nome para o cabeçalho
         output_path: caminho do .xlsx
-        data_apuracao: data do cálculo (default hoje)
+        data_apuracao: default = hoje
         taxa_juros_mes_pct: 1.0 default
 
     Returns:
@@ -270,203 +280,173 @@ def gerar_excel_indebito(
     if data_apuracao is None:
         data_apuracao = date.today()
 
-    # Calcular todos
     calculos = [calcular_contrato(c, data_apuracao, taxa_juros_mes_pct)
                 for c in contratos]
 
     wb = Workbook()
-    # Remove aba padrão
     wb.remove(wb.active)
-
-    # === ABA RESUMO ===
     ws = wb.create_sheet('RESUMO', 0)
+
+    # Cabeçalhos da tabela mensal (8 colunas — referência única)
+    cabs_mensal = ['Competência', 'Valor original', 'Fator INPC',
+                    'Valor corrigido', 'Meses (juros)', 'Juros 1% a.m.',
+                    'Total simples', 'Total em dobro (art. 42 CDC)']
+
+    # ===== TÍTULO PRINCIPAL =====
     ws.merge_cells('A1:H1')
     ws['A1'] = f'CÁLCULO DE INDÉBITO — {cliente_nome.upper()}'
     ws['A1'].font = _FONT_TITULO
     ws['A1'].fill = _FILL_TITULO
     ws['A1'].alignment = _CENTER
 
+    ws.merge_cells('A2:H2')
     ws['A2'] = f'Data de apuração: {data_apuracao.strftime("%d/%m/%Y")}'
     ws['A2'].font = Font(bold=True, italic=True)
-    ws.merge_cells('A2:H2')
+    ws['A2'].alignment = _CENTER
 
+    ws.merge_cells('A3:H3')
     ws['A3'] = (f'Regime: correção INPC + juros {taxa_juros_mes_pct:.1f}% a.m. '
                 f'simples + dobro (art. 42 CDC). Último INPC disponível: '
                 f'{INPC_ULTIMO_MES[1]:02d}/{INPC_ULTIMO_MES[0]}')
     ws['A3'].font = Font(italic=True, size=10)
-    ws.merge_cells('A3:H3')
+    ws['A3'].alignment = _CENTER
 
-    # Cabeçalhos
-    cabs = ['Contrato', 'Banco', 'Situação', 'Valor parcela', 'Meses descontados',
-            'Total descontado', 'Corrigido + juros', 'TOTAL EM DOBRO']
-    for i, c in enumerate(cabs, 1):
-        cell = ws.cell(row=5, column=i, value=c)
-        cell.font = _FONT_CAB
-        cell.fill = _FILL_CAB
-        cell.alignment = _CENTER
-        cell.border = _BORDA
+    ws.row_dimensions[1].height = 24
 
-    # Linhas de cada contrato
-    row = 6
-    for calc in calculos:
-        ws.cell(row=row, column=1, value=calc['contrato']).border = _BORDA
-        ws.cell(row=row, column=2, value=calc['banco']).border = _BORDA
-        ws.cell(row=row, column=3, value=calc.get('situacao', '')).border = _BORDA
-        _set_brl(ws.cell(row=row, column=4), calc['valor_parcela'])
-        ws.cell(row=row, column=4).border = _BORDA
-        ws.cell(row=row, column=5, value=calc['meses_pagos']).alignment = _CENTER
-        ws.cell(row=row, column=5).border = _BORDA
-        _set_brl(ws.cell(row=row, column=6), calc['soma_pagos'])
-        ws.cell(row=row, column=6).border = _BORDA
-        _set_brl(ws.cell(row=row, column=7), calc['total_simples'])
-        ws.cell(row=row, column=7).border = _BORDA
-        _set_brl(ws.cell(row=row, column=8), calc['total_dobrado'])
-        ws.cell(row=row, column=8).border = _BORDA
-        ws.cell(row=row, column=8).fill = _FILL_DOBRO
-        ws.cell(row=row, column=8).font = Font(bold=True)
+    row = 5  # 1 linha em branco entre cabeçalho e primeiro contrato
+
+    # ===== UM BLOCO POR CONTRATO =====
+    for idx, calc in enumerate(calculos):
+        # Título do contrato
+        ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=8)
+        ws.cell(row=row, column=1,
+                 value=(f'CONTRATO Nº {calc["contrato"]} — {calc["banco"]}  '
+                        f'(situação: {calc.get("situacao", "")}, valor parcela: '
+                        f'R$ {calc["valor_parcela"]:,.2f}, '
+                        f'{calc["meses_pagos"]} meses descontados)')
+                 ).font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+        ws.cell(row=row, column=1).fill = _FILL_TITULO
+        ws.cell(row=row, column=1).alignment = _LEFT
+        ws.row_dimensions[row].height = 22
         row += 1
 
-    # Linha de SUBTOTAL (somatório das colunas dos contratos)
+        # Cabeçalho da tabela mensal
+        for i, c in enumerate(cabs_mensal, 1):
+            cell = ws.cell(row=row, column=i, value=c)
+            cell.font = _FONT_CAB
+            cell.fill = _FILL_CAB
+            cell.alignment = _CENTER
+            cell.border = _BORDA
+        ws.row_dimensions[row].height = 30
+        row += 1
+
+        # Linhas mensais
+        for p in calc['parcelas']:
+            ws.cell(row=row, column=1, value=p['competencia']).alignment = _CENTER
+            _set_brl(ws.cell(row=row, column=2), p['valor_original'])
+            cf = ws.cell(row=row, column=3, value=p['fator_inpc'])
+            cf.number_format = '0.000000'
+            cf.alignment = _CENTER
+            _set_brl(ws.cell(row=row, column=4), p['valor_corrigido'])
+            ws.cell(row=row, column=5, value=p['meses_juros']).alignment = _CENTER
+            _set_brl(ws.cell(row=row, column=6), p['juros'])
+            _set_brl(ws.cell(row=row, column=7), p['total_simples'])
+            _set_brl(ws.cell(row=row, column=8), p['total_dobrado'])
+            ws.cell(row=row, column=8).fill = _FILL_DOBRO
+            ws.cell(row=row, column=8).font = Font(bold=True)
+            for col in range(1, 9):
+                ws.cell(row=row, column=col).border = _BORDA
+            row += 1
+
+        # Subtotal do contrato
+        ws.cell(row=row, column=1, value=f'SUBTOTAL CONTRATO Nº {calc["contrato"]}').font = _FONT_TOTAL
+        for col in range(1, 9):
+            ws.cell(row=row, column=col).fill = _FILL_TOTAL
+        _set_brl(ws.cell(row=row, column=2), calc['soma_pagos'])
+        ws.cell(row=row, column=2).font = _FONT_TOTAL
+        _set_brl(ws.cell(row=row, column=4), calc['soma_corrigida'])
+        ws.cell(row=row, column=4).font = _FONT_TOTAL
+        _set_brl(ws.cell(row=row, column=6), calc['soma_juros'])
+        ws.cell(row=row, column=6).font = _FONT_TOTAL
+        _set_brl(ws.cell(row=row, column=7), calc['total_simples'])
+        ws.cell(row=row, column=7).font = _FONT_TOTAL
+        _set_brl(ws.cell(row=row, column=8), calc['total_dobrado'])
+        ws.cell(row=row, column=8).font = Font(bold=True, color='006100', size=12)
+        for col in range(1, 9):
+            ws.cell(row=row, column=col).border = _BORDA
+        row += 1
+
+        # Linha em branco entre contratos
+        row += 1
+
+    # ===== SUBTOTAL GERAL =====
     soma_pagos_total = sum(c['soma_pagos'] for c in calculos)
     soma_simples_total = sum(c['total_simples'] for c in calculos)
     soma_dobrado_total = sum(c['total_dobrado'] for c in calculos)
-    ws.cell(row=row, column=1, value='SUBTOTAL (descontos em dobro)').font = _FONT_TOTAL
-    ws.cell(row=row, column=1).fill = _FILL_TOTAL
-    for col in range(2, 6):
+    ws.cell(row=row, column=1,
+             value=f'SUBTOTAL GERAL — {len(calculos)} contrato(s) em dobro'
+             ).font = _FONT_TOTAL
+    for col in range(1, 9):
         ws.cell(row=row, column=col).fill = _FILL_TOTAL
-    _set_brl(ws.cell(row=row, column=6), soma_pagos_total)
-    ws.cell(row=row, column=6).fill = _FILL_TOTAL
-    ws.cell(row=row, column=6).font = _FONT_TOTAL
+    _set_brl(ws.cell(row=row, column=2), soma_pagos_total)
+    ws.cell(row=row, column=2).font = _FONT_TOTAL
     _set_brl(ws.cell(row=row, column=7), soma_simples_total)
-    ws.cell(row=row, column=7).fill = _FILL_TOTAL
     ws.cell(row=row, column=7).font = _FONT_TOTAL
     _set_brl(ws.cell(row=row, column=8), soma_dobrado_total)
-    ws.cell(row=row, column=8).fill = _FILL_TOTAL
     ws.cell(row=row, column=8).font = Font(bold=True, color='006100', size=12)
     for col in range(1, 9):
         ws.cell(row=row, column=col).border = _BORDA
     row += 1
 
-    # ===== Dano moral =====
+    # ===== DANO MORAL =====
     n_contratos = len(calculos)
     dm = calcular_dano_moral(n_contratos)
     ws.cell(row=row, column=1,
-            value='DANO MORAL (regra fixa do escritório)').font = _FONT_TOTAL
-    ws.cell(row=row, column=1).fill = _FILL_TOTAL
-    for col in range(2, 8):
+             value='DANO MORAL (regra fixa do escritório)').font = _FONT_TOTAL
+    for col in range(1, 9):
         ws.cell(row=row, column=col).fill = _FILL_TOTAL
-    ws.cell(row=row, column=2, value=dm['criterio']).font = Font(italic=True)
     ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=7)
+    ws.cell(row=row, column=2, value=dm['criterio']).font = Font(italic=True)
+    ws.cell(row=row, column=2).alignment = _LEFT
     _set_brl(ws.cell(row=row, column=8), dm['valor'])
-    ws.cell(row=row, column=8).fill = _FILL_TOTAL
     ws.cell(row=row, column=8).font = Font(bold=True, color='006100', size=12)
     for col in range(1, 9):
         ws.cell(row=row, column=col).border = _BORDA
     row += 1
 
-    # ===== TOTAL GERAL (dobrado + dano moral) =====
+    # ===== TOTAL GERAL =====
     total_geral = soma_dobrado_total + dm['valor']
     ws.cell(row=row, column=1, value='TOTAL GERAL DA AÇÃO').font = Font(
         name='Calibri', size=13, bold=True, color='FFFFFF')
-    ws.cell(row=row, column=1).fill = _FILL_TITULO
-    for col in range(2, 8):
+    for col in range(1, 9):
         ws.cell(row=row, column=col).fill = _FILL_TITULO
-    ws.cell(row=row, column=2,
-            value=f'Subtotal em dobro + Dano moral').font = Font(
-        italic=True, color='FFFFFF')
     ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=7)
+    ws.cell(row=row, column=2,
+             value='Subtotal em dobro + Dano moral').font = Font(
+        italic=True, color='FFFFFF')
+    ws.cell(row=row, column=2).alignment = _LEFT
     _set_brl(ws.cell(row=row, column=8), total_geral)
-    ws.cell(row=row, column=8).fill = _FILL_TITULO
     ws.cell(row=row, column=8).font = Font(
         name='Calibri', size=14, bold=True, color='FFFF00')
     ws.row_dimensions[row].height = 28
     for col in range(1, 9):
         ws.cell(row=row, column=col).border = _BORDA
-    row += 1
 
-    # Larguras
-    for col, w in zip('ABCDEFGH', [22, 32, 12, 14, 12, 16, 18, 22]):
+    # Larguras (otimizadas para PDF A4 paisagem)
+    for col, w in zip('ABCDEFGH', [13, 14, 11, 16, 11, 14, 16, 20]):
         ws.column_dimensions[col].width = w
-    ws.row_dimensions[1].height = 24
-    ws.row_dimensions[5].height = 30
 
-    # === UMA ABA POR CONTRATO ===
-    for idx, calc in enumerate(calculos):
-        # Nome da aba: número do contrato (máx 31 chars)
-        nome_aba = f"{idx+1:02d}_{calc['contrato']}"[:31]
-        ws_c = wb.create_sheet(nome_aba)
-
-        ws_c.merge_cells('A1:H1')
-        ws_c['A1'] = (f'CONTRATO Nº {calc["contrato"]} — {calc["banco"]}')
-        ws_c['A1'].font = _FONT_TITULO
-        ws_c['A1'].fill = _FILL_TITULO
-        ws_c['A1'].alignment = _CENTER
-
-        info_row = 2
-        ws_c[f'A{info_row}'] = (f'Situação: {calc.get("situacao", "")}  •  '
-                                 f'Valor parcela: R$ {calc["valor_parcela"]:,.2f}  •  '
-                                 f'Meses descontados: {calc["meses_pagos"]}  •  '
-                                 f'Apuração: {data_apuracao.strftime("%d/%m/%Y")}')
-        ws_c[f'A{info_row}'].font = Font(italic=True, size=10)
-        ws_c.merge_cells(f'A{info_row}:H{info_row}')
-
-        # Cabeçalho tabela
-        cabs2 = ['Competência', 'Valor original', 'Fator INPC',
-                  'Valor corrigido', 'Meses (juros)', 'Juros 1% a.m.',
-                  'Total simples', 'Total em dobro (art. 42 CDC)']
-        for i, c in enumerate(cabs2, 1):
-            cell = ws_c.cell(row=4, column=i, value=c)
-            cell.font = _FONT_CAB
-            cell.fill = _FILL_CAB
-            cell.alignment = _CENTER
-            cell.border = _BORDA
-        ws_c.row_dimensions[4].height = 30
-
-        # Linhas das parcelas
-        r2 = 5
-        for p in calc['parcelas']:
-            ws_c.cell(row=r2, column=1, value=p['competencia']).alignment = _CENTER
-            _set_brl(ws_c.cell(row=r2, column=2), p['valor_original'])
-            cell_fator = ws_c.cell(row=r2, column=3, value=p['fator_inpc'])
-            cell_fator.number_format = '0.000000'
-            cell_fator.alignment = _CENTER
-            _set_brl(ws_c.cell(row=r2, column=4), p['valor_corrigido'])
-            ws_c.cell(row=r2, column=5, value=p['meses_juros']).alignment = _CENTER
-            _set_brl(ws_c.cell(row=r2, column=6), p['juros'])
-            _set_brl(ws_c.cell(row=r2, column=7), p['total_simples'])
-            _set_brl(ws_c.cell(row=r2, column=8), p['total_dobrado'])
-            ws_c.cell(row=r2, column=8).fill = _FILL_DOBRO
-            ws_c.cell(row=r2, column=8).font = Font(bold=True)
-            for col in range(1, 9):
-                ws_c.cell(row=r2, column=col).border = _BORDA
-            r2 += 1
-
-        # Linha total
-        ws_c.cell(row=r2, column=1, value='TOTAL').font = _FONT_TOTAL
-        for col in range(1, 6):
-            ws_c.cell(row=r2, column=col).fill = _FILL_TOTAL
-        _set_brl(ws_c.cell(row=r2, column=2), calc['soma_pagos'])
-        ws_c.cell(row=r2, column=2).fill = _FILL_TOTAL
-        ws_c.cell(row=r2, column=2).font = _FONT_TOTAL
-        _set_brl(ws_c.cell(row=r2, column=4), calc['soma_corrigida'])
-        ws_c.cell(row=r2, column=4).fill = _FILL_TOTAL
-        ws_c.cell(row=r2, column=4).font = _FONT_TOTAL
-        _set_brl(ws_c.cell(row=r2, column=6), calc['soma_juros'])
-        ws_c.cell(row=r2, column=6).fill = _FILL_TOTAL
-        ws_c.cell(row=r2, column=6).font = _FONT_TOTAL
-        _set_brl(ws_c.cell(row=r2, column=7), calc['total_simples'])
-        ws_c.cell(row=r2, column=7).fill = _FILL_TOTAL
-        ws_c.cell(row=r2, column=7).font = _FONT_TOTAL
-        _set_brl(ws_c.cell(row=r2, column=8), calc['total_dobrado'])
-        ws_c.cell(row=r2, column=8).fill = _FILL_TOTAL
-        ws_c.cell(row=r2, column=8).font = Font(bold=True, color='006100', size=12)
-        for col in range(1, 9):
-            ws_c.cell(row=r2, column=col).border = _BORDA
-
-        # Larguras
-        for col, w in zip('ABCDEFGH', [12, 14, 11, 16, 11, 14, 16, 20]):
-            ws_c.column_dimensions[col].width = w
-        ws_c.row_dimensions[1].height = 24
+    # Configurações de impressão (PDF)
+    ws.page_setup.orientation = ws.ORIENTATION_LANDSCAPE
+    ws.page_setup.paperSize = ws.PAPERSIZE_A4
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0  # 0 = quantas páginas precisar na vertical
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.print_options.horizontalCentered = True
+    ws.page_margins.left = 0.4
+    ws.page_margins.right = 0.4
+    ws.page_margins.top = 0.6
+    ws.page_margins.bottom = 0.6
 
     os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
     wb.save(output_path)
