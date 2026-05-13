@@ -288,8 +288,23 @@ def agrupar_contratos_por_banco_tese(contratos: list, path_relativo: str,
             nums_raiz = {n.split('-')[0] for n in nums_procuracao}
             if num_contrato not in nums_procuracao and raiz not in nums_raiz:
                 continue
-        # Banco para agrupamento: usa banco_chave do contrato OU primeiro da pasta
-        banco_grupo = (bc or chaves_pasta[0]).upper()
+        # Banco para agrupamento: usa banco_chave do contrato. Se None, tenta
+        # inferir do banco_nome_completo do contrato (importante para
+        # litisconsórcio passivo "BANCO X + BANCO Y" onde o kit-juridico
+        # deixou banco_chave=None mas o nome completo está preenchido).
+        # Fallback final: primeiro banco da pasta.
+        if bc:
+            banco_grupo = bc.upper()
+        else:
+            bn = (c.get('banco_nome_completo') or '').upper()
+            bn_norm = re.sub(r'\s+', '', bn)
+            banco_grupo = None
+            for chave in chaves_pasta:
+                if chave in bn_norm:
+                    banco_grupo = chave
+                    break
+            if not banco_grupo:
+                banco_grupo = chaves_pasta[0]
         key = (banco_grupo, tese_slug)
         grupos.setdefault(key, []).append(c)
 
