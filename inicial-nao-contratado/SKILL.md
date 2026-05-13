@@ -469,7 +469,7 @@ Quando a regra de cidade impõe Federal mas o valor excede 60 SM, retorna `renun
 
 **Para usuário:** ao gerar inicial, passar `perfil_chave='AL_FEDERAL'` para clientes dessas 3 cidades — independente do valor. Se passar `AL_ESTADUAL`, o `forcar` vence (você se responsabiliza pela decisão).
 
-### 9-duodecies. **BLOCO FÁTICO MÚLTIPLOS CONTRATOS: cabeçalho + sub-itens (gravado 13/05/2026)**
+### 9-duodecies. **BLOCO FÁTICO MÚLTIPLOS CONTRATOS: cabeçalho numerado + sub-itens (gravado 13/05/2026, ajuste fino noite 13/05/2026)**
 
 Caso paradigma: ANAIZA PENSAO ITAU (10 contratos a–j).
 
@@ -487,19 +487,30 @@ Repetição do "No que diz respeito ao referido empréstimo, cumpre informar que
 
 **Agora (13/05/2026):**
 ```
-No que diz respeito ao referido empréstimo, cumpre informar:
-a) o contrato de nº 622902175: a primeira parcela descontada do benefício...
-   cuja operação foi realizada pelo BANCO ITAU CONSIGNADO SA, ora requerido.
-b) o contrato de nº 626302197: a primeira parcela descontada...
+4. No que diz respeito ao referido empréstimo, cumpre informar:           ← NUMERADO (4.)
+   a) o contrato de nº 622902175: a primeira parcela descontada...        ← BOLD em "a) o contrato de nº 622902175:"
+   b) o contrato de nº 626302197: a primeira parcela descontada...        ← BOLD em "b) o contrato de nº 626302197:"
+   ...
 ```
 
-Estrutura: um parágrafo **cabeçalho** ("No que diz respeito ao referido empréstimo, cumpre informar:") + N **sub-itens** "[letra]) o contrato de nº NNN: a primeira parcela...".
+Estrutura:
+- **Cabeçalho NUMERADO** ("4. No que diz respeito ao referido empréstimo, cumpre informar:") — mantém o `numPr` original do parágrafo template, continuando a numeração da lista da inicial (1./2./3./4.).
+- **N sub-itens SEM numeração** mas com `[letra]) o contrato de nº NNN:` em **NEGRITO** — destaca visualmente cada contrato.
 
 **Implementação em `_pipeline_caso_al.py:_preencher_bloco_fatico` (caminho B):**
-- Cria parágrafo cabeçalho (deepcopy do template + limpa runs + adiciona texto fixo)
-- Insere ANTES da primeira cópia
-- Cada sub-item: substitui "No que diz respeito ao referido empréstimo, cumpre informar que a primeira parcela" → "[letra]) o contrato de nº [NUM]: a primeira parcela"
-- Remove "contrato n° xxxxxxx, " do meio (número já apareceu no início, evita duplicidade)
+
+1. **Cabeçalho criado ANTES do loop de remoção de `numPr`** (senão herda elementos sem numPr):
+   - `deepcopy(elem_template)` preservando `pPr` completo (com `numPr` → ganha "4." automático)
+   - Limpa só os `<w:r>` (runs) do deepcopy
+   - Adiciona novo run com texto fixo "No que diz respeito ao referido empréstimo, cumpre informar:"
+   - Insere ANTES de `elem_template`
+
+2. **Loop de remoção de `numPr`/`pStyle` de lista APENAS nos sub-itens** (elementos = cópias). O cabeçalho criado acima fica fora do loop e preserva sua numeração.
+
+3. **Cada sub-item:**
+   - Substitui "No que diz respeito ao referido empréstimo, cumpre informar que a primeira parcela" → "[letra]) o contrato de nº [NUM]: a primeira parcela"
+   - Remove "contrato n° xxxxxxx, " do meio (número já apareceu no início, evita duplicidade)
+   - Após todas as substituições, chama `_aplicar_bold_inicio(elem, "[letra]) o contrato de nº [NUM]:")` — função interna que quebra o primeiro `<w:r>` em 2: um run BOLD (prefixo) + um run normal (resto), preservando fonte/grifo.
 
 Para N=1 (1 só contrato) NÃO se aplica — o parágrafo singular fica como está.
 

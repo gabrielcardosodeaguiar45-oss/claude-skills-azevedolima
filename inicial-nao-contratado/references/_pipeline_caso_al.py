@@ -637,46 +637,24 @@ def _preencher_bloco_fatico(doc, contratos_fmt: List[Dict], cenario: Dict,
                     return chr(ord('a') + idx)
                 # fallback double-letter ('aa', 'ab', ...)
                 return chr(ord('a') + idx // 26 - 1) + chr(ord('a') + idx % 26)
-            # Remover numeração automática (numPr) dos parágrafos do bloco
-            # fático duplicado — senão sai "5. a) ... 6. b) ... 7. c) ...".
-            # Queremos só "a) ... b) ... c) ..." sem numeração lateral.
             _W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
-            for elem in elementos:
-                pPr = elem.find(f'{_W}pPr')
-                if pPr is None:
-                    continue
-                numPr = pPr.find(f'{_W}numPr')
-                if numPr is not None:
-                    pPr.remove(numPr)
-                # Também limpa pStyle de lista (que faz indentação automática)
-                pStyle = pPr.find(f'{_W}pStyle')
-                if pStyle is not None and 'Lista' in (pStyle.get(f'{_W}val', '') or ''):
-                    pPr.remove(pStyle)
-            # Detectar múltiplos bancos para decidir o nome a usar no bloco
-            bancos_distintos = {s.get('banco_nome', '').strip() for s in substituicoes[:n]
-                                if s.get('banco_nome')}
-            multi_banco = len(bancos_distintos) >= 2
 
             # === NOVO LAYOUT (gravado 13/05/2026):
-            # Em vez de N parágrafos repetindo "a) No que diz respeito ao
-            # referido empréstimo, cumpre informar que a primeira parcela...",
-            # geramos:
-            #   - UM parágrafo cabeçalho: "No que diz respeito ao referido
-            #     empréstimo, cumpre informar:"
-            #   - N parágrafos sub-itens: "a) o contrato de nº NNN, a primeira
-            #     parcela descontada do benefício..."
-            # O cabeçalho fica antes da primeira cópia. As cópias têm sua
-            # primeira frase reescrita para começar com "[letra]) o contrato
-            # de nº XXX, a primeira parcela descontada" — e o "contrato n°
-            # xxxxxxx," do meio é removido (porque já apareceu no início).
+            # - UM parágrafo cabeçalho NUMERADO: "4. No que diz respeito ao
+            #   referido empréstimo, cumpre informar:" (mantém numPr da lista
+            #   da inicial, continuando a numeração 1./2./3./4.)
+            # - N parágrafos sub-itens SEM numeração: "a) o contrato de nº NNN:
+            #   a primeira parcela descontada do benefício..." (numPr removido,
+            #   senão sairia "5. a) ... 6. b) ...")
+            # O "a) o contrato de nº NNN:" sai em NEGRITO para destacar.
 
-            # 1) Inserir parágrafo CABEÇALHO antes da primeira cópia
+            # 1) Criar CABEÇALHO ANTES de remover numPr dos sub-itens —
+            # senão o deepcopy herda elementos sem numPr.
             cabecalho = deepcopy(elem_template)
-            # Limpa o conteúdo de runs do cabeçalho preservando pPr
-            _W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+            # Limpa o conteúdo de runs do cabeçalho preservando pPr (que mantém
+            # numPr — assim o cabeçalho ganha número automático "4." na lista).
             for r in list(cabecalho.findall(f'{_W}r')):
                 cabecalho.remove(r)
-            # Adiciona run novo com o texto cabeçalho (em Cambria + grifo amarelo)
             from lxml import etree as _et
             _run_cab = _et.SubElement(cabecalho, f'{_W}r')
             _rPr_cab = _et.SubElement(_run_cab, f'{_W}rPr')
@@ -686,9 +664,92 @@ def _preencher_bloco_fatico(doc, contratos_fmt: List[Dict], cenario: Dict,
             _t_cab = _et.SubElement(_run_cab, f'{_W}t',
                                      {'{http://www.w3.org/XML/1998/namespace}space': 'preserve'})
             _t_cab.text = 'No que diz respeito ao referido empréstimo, cumpre informar:'
-            # Insere o cabeçalho ANTES do primeiro elemento
             elem_template.addprevious(cabecalho)
             feitos += 1
+
+            # 2) Remover numPr/pStyle de lista dos SUB-ITENS (cópias).
+            # Cabeçalho criado acima JÁ preservou seu numPr original.
+            for elem in elementos:  # elementos = só as cópias dos sub-itens
+                pPr = elem.find(f'{_W}pPr')
+                if pPr is None:
+                    continue
+                numPr = pPr.find(f'{_W}numPr')
+                if numPr is not None:
+                    pPr.remove(numPr)
+                pStyle = pPr.find(f'{_W}pStyle')
+                if pStyle is not None and 'Lista' in (pStyle.get(f'{_W}val', '') or ''):
+                    pPr.remove(pStyle)
+
+            # Detectar múltiplos bancos para decidir o nome a usar no bloco
+            bancos_distintos = {s.get('banco_nome', '').strip() for s in substituicoes[:n]
+                                if s.get('banco_nome')}
+            multi_banco = len(bancos_distintos) >= 2
+
+            def _letra(idx: int) -> str:
+                if idx < 26:
+                    return chr(ord('a') + idx)
+                return chr(ord('a') + idx // 26 - 1) + chr(ord('a') + idx % 26)
+
+            # Helper: aplica BOLD ao texto inicial "a) o contrato de nº NNN:"
+            # do sub-item — quebra o primeiro run que contém esse trecho em
+            # dois (parte bold + resto sem bold).
+            def _aplicar_bold_inicio(elem_sub, prefixo_texto):
+                """Procura `prefixo_texto` no primeiro w:t do elem_sub e quebra
+                o run em 2: um bold (texto prefixo) + um sem bold (restante).
+                """
+                for r in elem_sub.findall(f'{_W}r'):
+                    t_el = r.find(f'{_W}t')
+                    if t_el is None or t_el.text is None:
+                        continue
+                    if prefixo_texto in t_el.text:
+                        idx_prefixo = t_el.text.find(prefixo_texto)
+                        antes = t_el.text[:idx_prefixo]
+                        prefixo = t_el.text[idx_prefixo:idx_prefixo+len(prefixo_texto)]
+                        depois = t_el.text[idx_prefixo+len(prefixo_texto):]
+                        # Substitui o conteúdo do run atual por "antes"
+                        # (mantendo o resto da formatação original)
+                        if antes:
+                            t_el.text = antes
+                            insert_idx = list(elem_sub).index(r) + 1
+                        else:
+                            # Remove o run inteiro pois ficou vazio antes
+                            insert_idx = list(elem_sub).index(r)
+                            elem_sub.remove(r)
+                        # Cria run BOLD com o prefixo
+                        run_bold = _et.Element(f'{_W}r')
+                        rPr_bold = _et.SubElement(run_bold, f'{_W}rPr')
+                        # Copia formatação base (fonte) do run original
+                        rPr_orig = r.find(f'{_W}rPr')
+                        if rPr_orig is not None:
+                            rFonts_orig = rPr_orig.find(f'{_W}rFonts')
+                            if rFonts_orig is not None:
+                                rPr_bold.append(deepcopy(rFonts_orig))
+                        _et.SubElement(rPr_bold, f'{_W}b')
+                        _et.SubElement(rPr_bold, f'{_W}bCs')
+                        _et.SubElement(rPr_bold, f'{_W}highlight',
+                                       {f'{_W}val': 'yellow'})
+                        t_bold = _et.SubElement(
+                            run_bold, f'{_W}t',
+                            {'{http://www.w3.org/XML/1998/namespace}space': 'preserve'})
+                        t_bold.text = prefixo
+                        elem_sub.insert(insert_idx, run_bold)
+                        # Cria run NORMAL com o resto (sem bold) se houver
+                        if depois:
+                            run_normal = _et.Element(f'{_W}r')
+                            rPr_normal = _et.SubElement(run_normal, f'{_W}rPr')
+                            if rPr_orig is not None:
+                                rFonts_orig = rPr_orig.find(f'{_W}rFonts')
+                                if rFonts_orig is not None:
+                                    rPr_normal.append(deepcopy(rFonts_orig))
+                            _et.SubElement(rPr_normal, f'{_W}highlight',
+                                           {f'{_W}val': 'yellow'})
+                            t_normal = _et.SubElement(
+                                run_normal, f'{_W}t',
+                                {'{http://www.w3.org/XML/1998/namespace}space': 'preserve'})
+                            t_normal.text = depois
+                            elem_sub.insert(insert_idx + 1, run_normal)
+                        return True
+                return False
 
             # 2) Para cada cópia (incluindo o template original), reescrever
             #    o início "No que diz respeito ao referido empréstimo, cumpre
@@ -752,6 +813,13 @@ def _preencher_bloco_fatico(doc, contratos_fmt: List[Dict], cenario: Dict,
                         substituir_in_run(elem, {old: new}, grifo=True)
                         feitos += 1
                         texto_elem = texto_elem.replace(old, new, 1)
+
+                # === Aplicar BOLD em "a) o contrato de nº NNN:" ===
+                # Quebra o primeiro run do sub-item em 2: parte bold (prefixo)
+                # + parte normal (resto). Regra fixa 13/05/2026 — destaca cada
+                # contrato visualmente na lista.
+                prefixo_bold = f'{letra}) o contrato de nº {numero}:'
+                _aplicar_bold_inicio(elem, prefixo_bold)
             return feitos
         # === CAMINHO A: template tem sub-blocos "Do contrato sob n°..." ===
         contratos_iter = iter(substituicoes)
