@@ -380,6 +380,8 @@ def fase_f_montar_estrutura(pasta_cliente: str,
         pastas_acao_global[chave]["procuracoes"].append(proc)
 
     # Criar fisicamente as pastas
+    import re as _re
+    _PADRAO_ANTIGO_HIFEN = _re.compile(r'^\d+-\s')
     for (benef, nome_pasta_acao), conteudo in pastas_acao_global.items():
         if multi_beneficio:
             pasta_destino = base / benef / nome_pasta_acao
@@ -387,6 +389,19 @@ def fase_f_montar_estrutura(pasta_cliente: str,
             pasta_destino = base / nome_pasta_acao
         pasta_destino.mkdir(parents=True, exist_ok=True)
         relatorio["pastas_criadas"].append(str(pasta_destino.relative_to(base)))
+
+        # Limpa arquivos com nomenclatura ANTIGA (formato "X-" hífen, pré v2.2).
+        # A skill v2.2 gera tudo com "X." (ponto) + travessão `–`. Sem essa
+        # limpeza, ao re-rodar a fase F a pasta acumula duplicados (versão
+        # antiga + versão nova). Gravado 13/05/2026.
+        for _antigo in pasta_destino.iterdir():
+            if _antigo.is_file() and _PADRAO_ANTIGO_HIFEN.match(_antigo.name):
+                try:
+                    _antigo.unlink()
+                    relatorio.setdefault("arquivos_antigos_removidos", []).append(
+                        str(_antigo.relative_to(base)))
+                except Exception:
+                    pass
 
         # Fatiar procurações desta pasta
         for proc in conteudo["procuracoes"]:
