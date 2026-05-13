@@ -35,6 +35,16 @@ PASTA_BATCH = os.environ.get(
 )
 SKILL_DIR = os.path.dirname(__file__)
 ASSETS = os.path.join(SKILL_DIR, 'assets')
+OABS_DIR = os.path.join(ASSETS, 'oabs')
+
+# Mapeamento procurador → PDF da OAB em assets/oabs/
+OAB_PDF_POR_PROCURADOR = {
+    'tiago':     'OAB TIAGO.pdf',
+    'patrick':   'OAB PATRICK.pdf',
+    'gabriel':   'OAB GABRIEL.pdf',
+    'alexandre': 'OAB ALEXANDRE.pdf',
+    'eduardo':   'OAB EDUARDO.pdf',
+}
 
 # Templates por tese e versão (COM/SEM)
 TEMPLATES = {
@@ -505,6 +515,87 @@ def data_extenso(d: date | None = None) -> str:
     return f'{d.day} de {meses[d.month - 1]} de {d.year}'
 
 
+def montar_dossie_notificacao(pasta_acao_abs: str, output_dir_banco: str,
+                                 advogado_chave: str, contratos_pasta: list) -> dict:
+    """Copia os documentos de suporte para a pasta da notificação.
+
+    O dossiê contém:
+      - OAB do procurador (assinatura da notificação)
+      - Procurações dos contratos específicos do banco
+      - Documentos pessoais (RG/CPF, hipossuficiência, comprovante)
+      - HISCON (histórico de empréstimo) e HISCRE (histórico de créditos/pagamento)
+
+    Args:
+        pasta_acao_abs: pasta_acao da kit-juridico (ex.: '.../APOSENTADORIA/BANCO X')
+        output_dir_banco: pasta de destino (ex.: '.../notificacao/BRADESCO')
+        advogado_chave: chave do procurador ('tiago' / 'patrick' / etc.)
+        contratos_pasta: lista de contratos do banco (cada um com 'contrato')
+
+    Returns:
+        dict {copiados: int, faltantes: [str]}
+    """
+    import shutil
+    copiados = 0
+    faltantes = []
+
+    # 1. OAB do procurador
+    oab_nome = OAB_PDF_POR_PROCURADOR.get(advogado_chave)
+    if oab_nome:
+        oab_src = os.path.join(OABS_DIR, oab_nome)
+        if os.path.exists(oab_src):
+            shutil.copy2(oab_src, os.path.join(output_dir_banco, oab_nome))
+            copiados += 1
+        else:
+            faltantes.append(f'OAB do procurador {advogado_chave}')
+    else:
+        faltantes.append(f'mapeamento de OAB para procurador {advogado_chave!r}')
+
+    # 2. Procurações dos contratos do banco
+    if os.path.isdir(pasta_acao_abs):
+        numeros_banco = {str(c.get('contrato', '')) for c in contratos_pasta if c.get('contrato')}
+        numeros_raiz = {n.split('-')[0] for n in numeros_banco}
+        for nome in os.listdir(pasta_acao_abs):
+            if not nome.lower().endswith('.pdf'):
+                continue
+            if 'procura' not in nome.lower():
+                continue
+            # Procura número do contrato no nome
+            m = re.search(r'[Cc]ontrato\s+(?:n[º°]\s*)?(\d{4,}(?:-\d+)?)', nome)
+            if not m:
+                continue
+            num = m.group(1)
+            raiz = num.split('-')[0]
+            if num in numeros_banco or raiz in numeros_raiz:
+                shutil.copy2(
+                    os.path.join(pasta_acao_abs, nome),
+                    os.path.join(output_dir_banco, nome),
+                )
+                copiados += 1
+
+    # 3. Documentos comuns na pasta_acao (RG/CPF, Hipossuficiência, Comp.
+    # Residência, HISCON grifado, HISCRE/Histórico de pagamento)
+    if os.path.isdir(pasta_acao_abs):
+        for nome in os.listdir(pasta_acao_abs):
+            if not nome.lower().endswith('.pdf'):
+                continue
+            nome_upper = nome.upper()
+            # Pula procurações (já tratadas acima)
+            if 'PROCURA' in nome_upper:
+                continue
+            # Inclui se for documento comum
+            if any(k in nome_upper for k in [
+                'RG', 'CPF', 'HIPOSS', 'COMPROV', 'RESID',
+                'HIST', 'EMPRESTIMO', 'EMPRÉSTIMO', 'PAGAMENTO', 'CRÉDITO', 'CREDITO',
+            ]):
+                shutil.copy2(
+                    os.path.join(pasta_acao_abs, nome),
+                    os.path.join(output_dir_banco, nome),
+                )
+                copiados += 1
+
+    return {'copiados': copiados, 'faltantes': faltantes}
+
+
 def processar_cliente(pasta_cliente: str, log: list):
     """Processa um cliente: extrai qualificação + gera notificação por pasta_acao."""
     nome_cliente = os.path.basename(pasta_cliente)
@@ -600,30 +691,50 @@ def processar_cliente(pasta_cliente: str, log: list):
 
             mapa = montar_mapa_placeholders(qual, banco_info, advogado, contratos_pasta, hoje_extenso, uf_acao)
 
-            output_dir = os.path.join(pasta_acao_abs, 'notificacao')
+            # Subpasta dedicada por banco — contém DOCX + dossiê (OAB +
+            # procurações específicas + RG/CPF + HISCON/HISCRE).
+            output_dir = os.path.join(pasta_acao_abs, 'notificacao', banco_chave)
             os.makedirs(output_dir, exist_ok=True)
             nome_output = f'Notificação Extrajudicial - {banco_chave} - {tese.upper()}.docx'
             output_path = os.path.join(output_dir, nome_output)
 
             try:
                 rel = substituir_em_docx(template, mapa, output_path)
-                print(f'  [OK] {path_rel} → {nome_output} ({rel["total_substituicoes"]} subs)')
+                # Monta o dossiê (OAB + procurações + docs pessoais + HISCON/HISCRE)
+                dossie = montar_dossie_notificacao(
+                    pasta_acao_abs, output_dir,
+                    advogado.get('chave', ''), contratos_pasta,
+                )
+                print(f'  [OK] {path_rel} → {banco_chave}/{nome_output} '
+                      f'({rel["total_substituicoes"]} subs, {dossie["copiados"]} docs anexos)')
+                if dossie['faltantes']:
+                    print(f'       ⚠ faltantes: {dossie["faltantes"]}')
                 log[-1]['notificacoes'].append({
                     'pasta': path_rel,
                     'banco': banco_chave,
                     'tese': tese,
                     'output': output_path,
                     'substituicoes': rel['total_substituicoes'],
+                    'dossie_copiados': dossie['copiados'],
+                    'dossie_faltantes': dossie['faltantes'],
                 })
             except PermissionError:
                 # Arquivo já aberto no Word — gera com sufixo
                 output_path_alt = output_path.replace('.docx', '_v2.docx')
                 try:
                     rel = substituir_em_docx(template, mapa, output_path_alt)
-                    print(f'  [OK*] {path_rel} → {os.path.basename(output_path_alt)} (orig estava aberto)')
+                    dossie = montar_dossie_notificacao(
+                        pasta_acao_abs, output_dir,
+                        advogado.get('chave', ''), contratos_pasta,
+                    )
+                    print(f'  [OK*] {path_rel} → {banco_chave}/{os.path.basename(output_path_alt)} '
+                          f'(orig estava aberto, {dossie["copiados"]} docs anexos)')
                     log[-1]['notificacoes'].append({
                         'pasta': path_rel, 'banco': banco_chave, 'tese': tese,
-                        'output': output_path_alt, 'substituicoes': rel['total_substituicoes'],
+                        'output': output_path_alt,
+                        'substituicoes': rel['total_substituicoes'],
+                        'dossie_copiados': dossie['copiados'],
+                        'dossie_faltantes': dossie['faltantes'],
                     })
                 except Exception as e:
                     print(f'  [ERR] {path_rel}/{banco_chave}: {e}')
