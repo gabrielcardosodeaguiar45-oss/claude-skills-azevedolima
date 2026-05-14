@@ -1,0 +1,18 @@
+{
+  "nome_oficial": "BANCO BRADESCO S.A.",
+  "cnpj": "60.746.948.0001-12",
+  "cnpj_digitos": "60746948000112",
+  "endereco": {
+    "logradouro": "Rua Cidade de Deus",
+    "numero": "s/n",
+    "bairro": "Vila Yara",
+    "cidade": "Osasco",
+    "uf": "SP",
+    "cep": "06029-900"
+  },
+  "natureza_juridica": "pessoa jurídica de direito privado",
+  "_observacoes": {
+    "qualificacao_padrao_inicial": "BANCO BRADESCO S.A., pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 60.746.948.0001-12, com sede localizada na Rua Cidade de Deus, s/n, Vila Yara, Osasco/SP, CEP 06029-900",
+    "atencao_cnpj": "O CNPJ raiz do Bradesco é 60.746.948 (matriz). Filiais usam outros sufixos. Para causa contra o Bradesco S.A. usar SEMPRE 60.746.948/0001-12 (matriz)."
+  }
+}

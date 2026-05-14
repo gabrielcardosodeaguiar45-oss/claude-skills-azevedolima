@@ -1,0 +1,87 @@
+
+=== NOTIF: MARIA AZEVEDO PARINTINS ===
+  [SKIP] 2. RCC: sem contratos correspondentes
+  [SKIP] 3. Empréstimo não contratado: sem contratos correspondentes
+  [OK] BANCO PAN - RMC-RCC → PAN/Notif - PAN - RMC.docx (36 subs, 8 docs anexos)
+  [OK] BANCO PAN CONSIGNADO → PAN/Notif - PAN - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 7 docs anexos)
+  [OK] BANCO PAN CONSIGNADO (2) → PAN/Notif - PAN - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 7 docs anexos)
+Total: 3 notificações geradas em 1 clientes
+
+=== NOTIF: MARIA DO LIVRAMENTO ===
+  [OK] BANCO BMG - RMC-RCC → BMG/Notif - BMG - RMC.docx (36 subs, 5 docs anexos)
+  [OK] BANCO BRADESCO CONSIGNADO → BRADESCO/Notif - BRADESCO - CONSIGNADO-NAO-CONTRATADO.docx (41 subs, 5 docs anexos)
+  [OK] BANCO C6 CONSIGNADO → C6/Notif - C6 - CONSIGNADO-NAO-CONTRATADO.docx (41 subs, 5 docs anexos)
+  [SKIP] BANCO DAYCOVAL - RMC-RCC: sem contratos correspondentes
+  [OK] BANCO SANTANDER CONSIGNADO → SANTANDER/Notif - SANTANDER - CONSIGNADO-NAO-CONTRATADO.docx (41 subs, 5 docs anexos)
+  [SKIP] NÃO CONTRATADO: sem contratos correspondentes
+Total: 4 notificações geradas em 1 clientes
+
+=== NOTIF: MARIA ILMA RODRIGUES ===
+  [SKIP] procuração não localizada
+Total: 0 notificações geradas em 1 clientes
+
+=== NOTIF: MARIA IZABEL SANTOS ===
+  [OK] BANCO AGIBANK - RMC-RCC → AGIBANK/Notif - AGIBANK - RMC.docx (36 subs, 7 docs anexos)
+  [OK] BANCO AGIBANK CONSIGNADO → AGIBANK/Notif - AGIBANK - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 7 docs anexos)
+  [OK] BANCO AGIBANK CONSIGNADO (2) → AGIBANK/Notif - AGIBANK - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 7 docs anexos)
+  [OK] BANCO AGIBANK CONSIGNADO (3) → AGIBANK/Notif - AGIBANK - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 7 docs anexos)
+  [OK] BANCO AGIBANK CONSIGNADO (4) → AGIBANK/Notif - AGIBANK - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 7 docs anexos)
+  [OK] BANCO AGIBANK CONSIGNADO (5) → AGIBANK/Notif - AGIBANK - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 7 docs anexos)
+  [OK] BANCO BMG - RMC-RCC → BMG/Notif - BMG - RMC.docx (36 subs, 7 docs anexos)
+  [OK] BANCO C6 CONSIGNADO → C6/Notif - C6 - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 7 docs anexos)
+  [OK] BANCO C6 CONSIGNADO (2) → C6/Notif - C6 - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 7 docs anexos)
+  [OK] BANCO DAYCOVAL CONSIGNADO → DAYCOVAL/Notif - DAYCOVAL - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 7 docs anexos)
+  [OK] BANCO ITAU CONSIGNADO → ITAU/Notif - ITAU - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 7 docs anexos)
+Total: 11 notificações geradas em 1 clientes
+
+=== NOTIF: MARIA OLANDINA ===
+MARIA OLANDINA FERREIRA - Escritório Maués - RMC, RCC E N.C
+  Procuração: PROCURAÇÕES BRADESCO MARIA OLANDINA FERREIRA.pdf
+  Qualificação: nome='MARIA OLANDINA FERREIRA' cpf='603.282.902-20' rg='' estado_civil=''
+  [OK] BANCO BMG - RMC-RCC → BMG/Notif - BMG - RMC.docx (36 subs, 5 docs anexos)
+  [OK] BANCO BRADESCO - RMC-RCC → BRADESCO/Notif - BRADESCO - RMC.docx (36 subs, 5 docs anexos)
+  [OK] BANCO BRADESCO CONSIGNADO → BRADESCO/Notif - BRADESCO - CONSIGNADO-NAO-CONTRATADO.docx (41 subs, 7 docs anexos)
+  [OK] BANCO DAYCOVAL CONSIGNADO → DAYCOVAL/Notif - DAYCOVAL - CONSIGNADO-NAO-CONTRATADO.docx (41 subs, 5 docs anexos)
+  [OK] BANCO PAN - RMC-RCC → PAN/Notif - PAN - RCC.docx (36 subs, 5 docs anexos)
+  [SKIP] NÃO CONTRATADO: sem contratos correspondentes
+  [SKIP] RCC: sem contratos correspondentes
+  [SKIP] RMC: sem contratos correspondentes
+  MARIA OLANDINA FERREIRA - Escritório Maués - RMC, RCC E N.C ok                        5 notif
+Total: 5 notificações geradas em 1 clientes
+
+=== NOTIF: MARIA VALDENICE ===
+  [SKIP] 3. Emprestimo nao contratado: sem contratos correspondentes
+  [OK] BANCO BMG - RMC-RCC → BMG/Notif - BMG - RMC.docx (36 subs, 5 docs anexos)
+  [OK] BANCO BRADESCO CONSIGNADO → BRADESCO/Notif BRADESCO.docx (36 subs, 5 docs anexos)
+  [SKIP] BANCO PAN - RMC-RCC: sem contratos correspondentes
+Total: 2 notificações geradas em 1 clientes
+
+=== NOTIF: MARILDA GARCIA ===
+  [SKIP] sem _estado_cliente.json
+Total: 0 notificações geradas em 1 clientes
+
+=== NOTIF: MARIO DA SILVA ===
+  [OK] BANCO BMG - RMC-RCC → BMG/Notif - BMG - RMC.docx (36 subs, 5 docs anexos)
+  [OK] BANCO ITAU CONSIGNADO → ITAU/Notif - ITAU - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 5 docs anexos)
+Total: 2 notificações geradas em 1 clientes
+
+=== NOTIF: NILSON SOARES ===
+  [OK] BANCO C6 CONSIGNADO → C6/Notif - C6 - CONSIGNADO-NAO-CONTRATADO.docx (41 subs, 4 docs anexos)
+  [OK] BANCO FACTA - RMC-RCC → FACTA/Notif - FACTA - RMC.docx (36 subs, 4 docs anexos)
+  [SKIP] BANCO PAN - RMC-RCC: sem contratos correspondentes
+Total: 2 notificações geradas em 1 clientes
+
+=== NOTIF: PEDRO DA SILVA ===
+  [OK] BANCO BMG - RMC-RCC → BMG/Notif - BMG - RMC.docx (36 subs, 6 docs anexos)
+  [OK] BANCO C6 CONSIGNADO → C6/Notif - C6 - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 6 docs anexos)
+  [SKIP] BANCO PAN - RMC-RCC: sem contratos correspondentes
+  [OK] BANCO PAN CONSIGNADO → PAN/Notif - PAN - CONSIGNADO-NAO-CONTRATADO.docx (36 subs, 6 docs anexos)
+Total: 3 notificações geradas em 1 clientes
+
+=== NOTIF: VILSON DA CRUZ ===
+  [OK] BANCO BANRISUL CONSIGNADO → BANRISUL/Notif - BANRISUL - CONSIGNADO-NAO-CONTRATADO.docx (41 subs, 6 docs anexos)
+  [OK] BANCO BMG - RMC-RCC → BMG/Notif - BMG - RMC.docx (36 subs, 6 docs anexos)
+  [SKIP] BANCO PAN - RMC-RCC: sem contratos correspondentes
+  [OK] BANCO PAN CONSIGNADO → PAN/Notif - PAN - CONSIGNADO-NAO-CONTRATADO.docx (41 subs, 6 docs anexos)
+  [SKIP] comprovante em nome da mãe: sem contratos correspondentes
+Total: 3 notificações geradas em 1 clientes

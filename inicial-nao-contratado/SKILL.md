@@ -107,6 +107,39 @@ Templates `.docx` ficam em
    bloco fático. Replicar lógica do AL (`_preencher_bloco_fatico` caminho B
    1banco×N contratos) quando aparecer caso real.
 
+## Contratos VIRTUAIS (procuração tem, HISCON não tem) — regra 2026-05-13
+
+Quando o contrato consta na procuração mas NÃO está no HISCON atual, o
+escritório quer **gerar a inicial mesmo assim**, com valores estimados, e
+marcar pendência de "juntar HISCON do período do empréstimo".
+
+Use `permitir_contrato_virtual=True` ao chamar `gerar_inicial_padrao`:
+
+```python
+gerar_inicial_padrao(
+    perfil_chave='AM_ESTADUAL',
+    pasta_cliente=...,
+    numeros_contrato_explicitos=['123505288054'],   # contrato virtual
+    autora=...,
+    permitir_contrato_virtual=True,
+    contrato_virtual_overrides={
+        'data_inclusao':      '01/01/2020',          # estimado (período HISCRE)
+        'competencia_inicio': '01/2020',
+        'qtd_parcelas':       84,
+        'valor_parcela':      56.18,                 # média dos contratos do banco no JSON
+        'valor_emprestado':   2500.00,
+    },
+)
+```
+
+A skill cria um contrato VIRTUAL com `_virtual: True` + `_pendencia_hiscon: True`
+e segue a geração normal. **Gerar relatório paralelo de pendência** informando
+o operador para juntar o HISCON real e atualizar os valores antes do protocolo.
+
+Caso paradigma: EDINA Bradesco (2026-05-13) — 5 procurações, 3 contratos no
+HISCON (geradas normais) + 2 virtuais (geradas com estimativa = média dos
+3 reais = R$ 56,18; valor causa estimado R$ 26.853,96).
+
 ## Regras críticas (não esquecer)
 
 ### 1. Polo passivo VARIA conforme jurisdição

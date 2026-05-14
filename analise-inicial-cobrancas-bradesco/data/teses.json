@@ -1,0 +1,75 @@
+{
+  "_descricao": "Mapeamento entre tipo de ação e IRDR / tese jurídica esperada na inicial.",
+  "tipos": {
+    "MORA_CRED_PESS": {
+      "rubrica_extrato": ["Mora Cred Pess", "MORA CRED PESS"],
+      "rubrica_inicial_regex": "[Mm]ora\\s+[Cc]red\\s*[Pp]ess",
+      "irdr": "0004464-79.2023.8.04.0000",
+      "irdr_pretty": "IRDR n.º 0004464-79.2023.8.04.0000 (TJ-AM)",
+      "ratio": "Os encargos 'Mora Cred Pess' só podem ser cobrados mediante comprovação documental de ciência prévia do consumidor, por instrumento assinado manual ou digitalmente, ou por outros meios eficazes que detalhem as circunstâncias da cobrança.",
+      "objeto_procuracao": ["mora credito pessoal", "mora cred pess", "mora cred. pess"],
+      "tipo_notificacao": "AM - Encargos",
+      "n_reus": 1
+    },
+    "MORA_ENCARGOS": {
+      "rubrica_extrato": ["Mora Cred Pess", "Enc. Lim. Crédito", "Encargos de Limite de Crédito", "ENC. LIM. CRED"],
+      "rubrica_inicial_regex": "([Mm]ora\\s+[Cc]red\\s*[Pp]ess).*([Ee]nc|[Ee]ncargo).*([Ll]imite|[Ll]im)",
+      "irdr": "0004464-79.2023.8.04.0000",
+      "irdr_pretty": "IRDR n.º 0004464-79.2023.8.04.0000 (TJ-AM)",
+      "ratio": "Os encargos 'Mora Cred Pess' e 'Enc. Lim. Crédito' só podem ser cobrados mediante comprovação documental de ciência prévia do consumidor.",
+      "objeto_procuracao": ["mora", "encargo", "limite de crédito"],
+      "tipo_notificacao": "AM - Encargos",
+      "n_reus": 1
+    },
+    "TARIFAS": {
+      "rubrica_extrato": ["Tarifa", "TARIFA", "Pacote", "Cesta"],
+      "rubrica_inicial_regex": "[Tt]arifas?\\s+banc[áa]rias?",
+      "irdr": "0005053-71.2023.8.04.0000",
+      "irdr_pretty": "IRDR n.º 0005053-71.2023.8.04.0000 (TJ-AM)",
+      "ratio": "A cobrança não autorizada de valores a título de tarifas bancárias ou denominações equivalentes configura dano moral presumido, independentemente de prova do abalo, por violar a dignidade da pessoa humana.",
+      "objeto_procuracao": ["tarifa"],
+      "tipo_notificacao": "AM - Tarifas",
+      "n_reus": 1
+    },
+    "TITULO_CAPITALIZACAO": {
+      "rubrica_extrato": ["Título de Capitalização", "TITULO DE CAPITALIZACAO", "TIT CAP"],
+      "rubrica_inicial_regex": "[Tt][íi]tulo\\s+de\\s+[Cc]apitaliza[çc][ãa]o",
+      "irdr": null,
+      "irdr_pretty": "Turmas Recursais do TJAM (cobrança não autorizada de produtos financeiros congêneres)",
+      "ratio": "As três Turmas Recursais do TJAM entendem que a cobrança não autorizada de valores em conta bancária do consumidor, seja a título de tarifas bancárias, títulos de capitalização ou produtos financeiros congêneres, configura dano moral presumido.",
+      "objeto_procuracao": ["título de capitalização", "titulo de capitalizacao"],
+      "tipo_notificacao": "AM - Título de Capitalização",
+      "n_reus": 1
+    },
+    "APLIC_INVEST": {
+      "rubrica_extrato": ["APLIC.INVEST FACIL", "APLIC INVEST", "Aplicação Invest", "INVEST FACIL"],
+      "rubrica_inicial_regex": "APLIC\\.?\\s*INVEST(\\s+F[AÁ]CIL)?|[Aa]plica[çc][ãa]o\\s+[Ii]nvest",
+      "irdr": null,
+      "irdr_pretty": "Turmas Recursais do TJAM (cobrança não autorizada de produtos financeiros congêneres)",
+      "ratio": "As três Turmas Recursais do TJAM entendem que a cobrança não autorizada de valores em conta bancária do consumidor configura dano moral presumido.",
+      "objeto_procuracao": ["aplicação", "invest fácil", "aplic invest"],
+      "tipo_notificacao": "AM - Encargos",
+      "n_reus": 1
+    },
+    "PG_ELETRON": {
+      "rubrica_extrato": ["PG ELETRON", "Pagamento Eletrônico", "PGTO ELETRÔNICO"],
+      "rubrica_inicial_regex": "[Pp]agamento\\s+[Ee]letr[ôo]nico|PG\\.?\\s*ELETRON",
+      "irdr": null,
+      "irdr_pretty": "Tese geral de dano moral por ausência de relação jurídica + débito automático sem autorização",
+      "ratio": "A cobrança não autorizada via pagamento eletrônico, originada de empresa terceira sem qualquer relação jurídica com o consumidor, configura defeito na prestação do serviço bancário e enseja dano moral.",
+      "objeto_procuracao": ["pagamento eletrônico", "pgto eletronico"],
+      "tipo_notificacao": "AM - Pagamento Eletrônico",
+      "n_reus": 2
+    }
+  },
+  "_observacoes": {
+    "PI_combinada": "Quando a inicial discute mais de uma rubrica (ex.: TARIFAS + MORA + TÍTULO), aplicar checklist de cada componente e exigir IRDR/tese de cada um.",
+    "tipos_notificacao": [
+      "AM - Encargos",
+      "AM - Não contratado",
+      "AM - Pagamento Eletrônico",
+      "AM - Tarifas",
+      "AM - Título de Capitalização"
+    ]
+  }
+}

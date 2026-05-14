@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema do contrato de rebate — _contrato_rebate.json",
+  "description": "Lista de cobertura 100% das teses do banco. Cada tese listada em _analise.json:contestacao gera uma entrada aqui, com seção da réplica que vai responder, fundamentos, criticidade e número mínimo de parágrafos. Produzido pelo consultor-vault-rmc, consumido pelo redator e auditado pelo revisor.",
+  "type": "object",
+  "required": ["entradas", "_meta"],
+  "properties": {
+    "entradas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "origem", "rotulo_banco", "secao_replica", "fundamentos", "min_paragrafos", "criticidade"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador único da tese; espelha o id em _analise.json:contestacao"
+          },
+          "origem": {
+            "type": "string",
+            "enum": ["preliminar", "merito"],
+            "description": "Determina o bloco da réplica. Preliminares sempre antes do mérito, mesmo se o banco bagunçou."
+          },
+          "rotulo_banco": {
+            "type": "string",
+            "description": "Como o banco nomeou na contestação. Aparece entre aspas no título da seção da réplica."
+          },
+          "trecho_literal_curto": {
+            "type": "string",
+            "description": "Primeiras 30 a 40 palavras do trecho literal, para identificação visual."
+          },
+          "secao_replica": {
+            "type": "string",
+            "description": "Caminho completo da seção, ex: 'DAS PRELIMINARES > DA ALEGADA LITISPENDÊNCIA'"
+          },
+          "posicao_na_peca": {
+            "type": "integer",
+            "description": "Ordem dentro do bloco; preliminares numeradas 1..N, mérito 1..M. Reflete ordem da contestação salvo necessidade de mover preliminar processual para antes do mérito."
+          },
+          "fundamentos": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Lista de fundamentos jurídicos que serão invocados (ex: art_337_§2_cpc, triplice_identidade, onus_da_prova_recai_sobre_arguente)"
+          },
+          "precedentes_a_citar": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "IDs de precedentes do _plano.json:precedentes a citar nesta seção específica"
+          },
+          "frases_modelo_aplicaveis": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "IDs do arquivo vault/Modelos/ReplicasRMC/frases-padrao-rebates.md, ex: F.PRELIM.LITISP.01"
+          },
+          "min_paragrafos": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Densidade mínima do rebate. ALTA=3-5, MEDIA=2-3, BAIXA=1"
+          },
+          "criticidade": {
+            "type": "string",
+            "enum": ["ALTA", "MEDIA", "BAIXA"],
+            "description": "ALTA = preliminar processual séria ou tese central de mérito. MEDIA = tese periférica ou consectários. BAIXA = tese fraca ou citação de norma irrelevante. Mesmo BAIXA é rebatida (1 parágrafo)."
+          }
+        }
+      }
+    },
+    "cobertura": {
+      "type": "object",
+      "description": "Métricas de cobertura para o revisor auditar.",
+      "properties": {
+        "total_teses_banco": {"type": "integer"},
+        "total_entradas_contrato": {"type": "integer"},
+        "preliminares": {"type": "integer"},
+        "merito": {"type": "integer"},
+        "criticidade_alta": {"type": "integer"},
+        "criticidade_media": {"type": "integer"},
+        "criticidade_baixa": {"type": "integer"}
+      }
+    },
+    "_meta": {
+      "type": "object",
+      "required": ["analise_origem", "data_contrato"],
+      "properties": {
+        "analise_origem": {"type": "string", "description": "Caminho do _analise.json que gerou este contrato"},
+        "data_contrato": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+        "versao_schema": {"type": "string", "default": "1.0.0"}
+      }
+    }
+  }
+}

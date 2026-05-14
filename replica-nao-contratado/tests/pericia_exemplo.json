@@ -1,0 +1,330 @@
+{
+  "meta": {
+    "processo": "0006002-52.2026.4.05.8001",
+    "autor": "MARIA DE LOURDES DANTAS DA SILVA",
+    "cpf_autor": "029.873.624-12",
+    "uf_autora": "AL",
+    "data_pericia": "2026-05-05",
+    "bancos_passivo": ["C6 CONSIGNADO"],
+    "perito": "skill replica-nao-contratado v2026-05",
+    "input_pdf": "0006002-52.2026.4.05.8001.pdf"
+  },
+  "contratos_digitais": [
+    {
+      "numero": "901301 61082",
+      "ade": "57130823",
+      "banco": "C6 CONSIGNADO",
+      "tipo": "DIGITAL",
+      "data_alegada": "2023-12-19",
+      "valor_liberado": 9195.86,
+      "parcelas_qtd": 41,
+      "parcelas_valor": 313.40,
+      "status": "ATIVO",
+      "evento_pdf": "Ev18.3 - paginas 239-249",
+      "achados": {
+        "A_email": {
+          "resultado": "vazio",
+          "valor": null,
+          "risco": "ALTO",
+          "evidencia_pdf": "Evento 18.3 pag 2 da CCB",
+          "piloto_acionado": "merito-probatorio-digital/inconsistencias-dados-cadastrais",
+          "variante": "A.1",
+          "texto_achado": "Campo e-mail vazio na CCB do contrato 901301 61082, em contratacao supostamente digital essa ausencia e injustificavel."
+        },
+        "B_iti": {
+          "resultado": "manual",
+          "valor_validador": null,
+          "risco": "manual",
+          "evidencia_pdf": null,
+          "piloto_acionado": "merito-probatorio-digital/assinatura-invalida-validador-iti",
+          "variante": "B.1",
+          "texto_achado": "Validador ITI requer print externo manual.",
+          "placeholder_visual": "[INSERIR - Imagem: print do validador ITI para o contrato 901301 61082]"
+        },
+        "C_hash": {
+          "resultado": "compartilhado",
+          "hash_calculado": "sha256:def456...",
+          "hash_esperado": null,
+          "componentes": {
+            "envelope": null,
+            "ccb": null,
+            "cet": null,
+            "termo_inss": "sha256:def456...",
+            "cadastro": "sha256:def456...",
+            "evidencias": null
+          },
+          "compartilhado_com": ["901301 61362"],
+          "risco": "ALTO",
+          "piloto_acionado": "merito-probatorio-digital/hash-id-ntico-entre-contratos",
+          "variante": "C.3",
+          "texto_achado": "Hash SHA-256 do termo INSS e do cadastro identico entre os contratos 901301 61082 e 901301 61362, demonstrando que os arquivos foram clonados, e nao gerados em sessoes individualizadas."
+        },
+        "D_metadados": {
+          "resultado": "irregular",
+          "data_criacao": "2024-01-15",
+          "data_modificacao": null,
+          "software": "Aspose.PDF for .NET 22.10",
+          "data_alegada_contrato": "2023-12-19",
+          "risco": "ALTO",
+          "piloto_acionado": "merito-probatorio-digital/analise-metadados",
+          "variante": "D.1",
+          "texto_achado": "Metadados do PDF revelam software Aspose.PDF for .NET 22.10 e data de criacao 15/01/2024, posterior a data alegada do contrato (19/12/2023), evidenciando que o documento foi gerado posteriormente, nao na sessao de aceite."
+        },
+        "E_ip": {
+          "resultado": "irregular",
+          "valor": "10.1.1.1",
+          "tipo": "privado_RFC1918",
+          "geolocalizacao": null,
+          "distancia_residencia_km": null,
+          "compartilhado_com": ["901301 61362"],
+          "risco": "ALTO",
+          "piloto_acionado": "merito-probatorio-digital/ip-desconhecido",
+          "variante": "E.1",
+          "texto_achado": "IP registrado 10.1.1.1, faixa privada RFC 1918, incompativel com conexao publica de internet domestica e identico ao do contrato 901301 61362."
+        },
+        "F_geo": {
+          "resultado": "nao_aplicavel",
+          "lat": null,
+          "lon": null,
+          "distancia_residencia_km": null,
+          "risco": "BAIXO",
+          "piloto_acionado": null,
+          "variante": null
+        },
+        "G_sessao": {
+          "resultado": "irregular",
+          "id": "sess_abc123",
+          "compartilhada_com": ["901301 61362"],
+          "horario_aceite": "2023-12-19T14:23:05",
+          "horarios_proximos_outros": [
+            {"contrato": "901301 61362", "horario": "2023-12-19T14:23:05", "diferenca_segundos": 0}
+          ],
+          "risco": "ALTO",
+          "piloto_acionado": "merito-probatorio-digital/inconsistencias-trilha-auditoria",
+          "variante": "G.1",
+          "texto_achado": "Mesma session ID (sess_abc123) compartilhada entre os contratos 901301 61082 e 901301 61362, com aceite registrado no mesmo segundo (14:23:05 do dia 19/12/2023), inviabilizando alegacao de sessoes humanas individualizadas."
+        },
+        "H_selfie": {
+          "resultado": "reutilizada",
+          "presente": true,
+          "reutilizada_com": ["901301 61362"],
+          "comparacao_visual": "Mesma roupa, mesmo fundo, mesma posicao da face entre os dois contratos.",
+          "liveness_adequado": null,
+          "risco": "ALTO",
+          "piloto_acionado": "merito-probatorio-digital/selfie-liveness",
+          "variante": "H.2",
+          "ativa_kit_fraude": true,
+          "texto_achado": "Selfie do contrato 901301 61082 reutilizada no contrato 901301 61362, mesma imagem facial, mesma roupa e mesma posicao corporea, descaracterizando captura biometrica individualizada."
+        },
+        "I_correspondente": {
+          "resultado": "irregular",
+          "nome": "FONTES PROMOTORA",
+          "cnpj": "11.643.037/0001-54",
+          "cidade": "Florianopolis/SC",
+          "distancia_km": 3500,
+          "uf_autora": "AL",
+          "compartilhado_com_contratos": ["901301 61362"],
+          "compartilhado_entre_bancos": false,
+          "risco": "ALTO",
+          "piloto_acionado": "merito-probatorio-misto/dados-correspondente-originador",
+          "variante": "I.1",
+          "texto_achado": "Correspondente bancario indicado FONTES PROMOTORA, sediada em Florianopolis/SC, distante aproximadamente 3.500 km da residencia da autora em Alagoas, originou os dois contratos no mesmo dia."
+        },
+        "J_telefone": {
+          "resultado": "compativel",
+          "numero": "(82) 99999-9999",
+          "ddd_registrado": "82",
+          "ddd_esperado": "82",
+          "telefones_distintos_outros_contratos": [],
+          "risco": "BAIXO",
+          "piloto_acionado": null,
+          "variante": null
+        },
+        "K_ausencia": {
+          "resultado": "juntado",
+          "contrato_juntado": true,
+          "evidencia_pdf": "Evento 18.3",
+          "risco": "BAIXO",
+          "piloto_acionado": null,
+          "variante": null
+        },
+        "L_ted": {
+          "resultado": "irregular",
+          "valor_ted": 4307.15,
+          "valor_ccb": 4307.15,
+          "diferenca": 0.00,
+          "data_ted": "2023-12-19",
+          "horario_ted": "14:30:00",
+          "horario_aceite": "2023-12-19T14:23:05",
+          "banco_destino": "Banco 237 - BRADESCO",
+          "agencia_destino": "3169",
+          "conta_destino": "1015906-7",
+          "banco_inss_hiscre": "Banco 1 - BRASIL",
+          "competencias_verificadas_hiscre": ["10/2023", "11/2023", "12/2023"],
+          "destino_coincide_com_inss": false,
+          "comprovante_presente": true,
+          "nsu_endtoendid_presente": false,
+          "risco": "ALTO",
+          "piloto_acionado": "merito-argumentativo/compensacao-valores-tese-nova",
+          "variante": "L.3",
+          "texto_calibrado_etico": "TED destinado a conta diversa daquela em que a autora recebia INSS na epoca; aciona tese da compensacao; PROIBIDO afirmar conta de terceiro ou pedir intimacao da autora",
+          "texto_achado": "TED no valor de R$ 4.307,15 destinado ao Bradesco, agencia 3169, conta 1015906-7, conta diversa daquela em que a autora recebia seu beneficio previdenciario (Banco do Brasil, conforme HISCRE nas competencias 10/2023, 11/2023 e 12/2023). A autora nao percebeu o referido deposito dentre os multiplos lancamentos do extrato."
+        }
+      },
+      "achados_aplicaveis_count": 9,
+      "achados_alto_risco_count": 8,
+      "classificacao_individual": "ALTO_RISCO"
+    },
+    {
+      "numero": "901301 61362",
+      "ade": "57130824",
+      "banco": "C6 CONSIGNADO",
+      "tipo": "DIGITAL",
+      "data_alegada": "2023-12-19",
+      "valor_liberado": 6500.00,
+      "parcelas_qtd": 36,
+      "parcelas_valor": 245.00,
+      "status": "ATIVO",
+      "evento_pdf": "Ev18.4 - paginas 250-260",
+      "achados": {
+        "A_email": {
+          "resultado": "vazio",
+          "valor": null,
+          "risco": "ALTO",
+          "evidencia_pdf": "Evento 18.4 pag 2 da CCB",
+          "piloto_acionado": "merito-probatorio-digital/inconsistencias-dados-cadastrais",
+          "variante": "A.1",
+          "texto_achado": "Campo e-mail vazio na CCB do contrato 901301 61362, identico padrao detectado no contrato 901301 61082."
+        },
+        "C_hash": {
+          "resultado": "compartilhado",
+          "hash_calculado": "sha256:def456...",
+          "componentes": {
+            "termo_inss": "sha256:def456...",
+            "cadastro": "sha256:def456..."
+          },
+          "compartilhado_com": ["901301 61082"],
+          "risco": "ALTO",
+          "piloto_acionado": "merito-probatorio-digital/hash-id-ntico-entre-contratos",
+          "variante": "C.3",
+          "texto_achado": "Hash SHA-256 do termo INSS e do cadastro identico ao contrato 901301 61082, demonstrando clonagem de arquivos."
+        },
+        "E_ip": {
+          "resultado": "irregular",
+          "valor": "10.1.1.1",
+          "tipo": "privado_RFC1918",
+          "compartilhado_com": ["901301 61082"],
+          "risco": "ALTO",
+          "piloto_acionado": "merito-probatorio-digital/ip-desconhecido",
+          "variante": "E.1",
+          "texto_achado": "IP 10.1.1.1, identico ao do contrato 901301 61082, faixa privada RFC 1918."
+        },
+        "G_sessao": {
+          "resultado": "irregular",
+          "id": "sess_abc123",
+          "compartilhada_com": ["901301 61082"],
+          "horario_aceite": "2023-12-19T14:23:05",
+          "risco": "ALTO",
+          "piloto_acionado": "merito-probatorio-digital/inconsistencias-trilha-auditoria",
+          "variante": "G.1",
+          "texto_achado": "Mesma session ID e mesmo horario de aceite (14:23:05) do contrato 901301 61082, padrao incompativel com sessoes humanas distintas."
+        },
+        "H_selfie": {
+          "resultado": "reutilizada",
+          "presente": true,
+          "reutilizada_com": ["901301 61082"],
+          "comparacao_visual": "Mesma roupa, mesmo fundo, mesma posicao corporea.",
+          "risco": "ALTO",
+          "piloto_acionado": "merito-probatorio-digital/selfie-liveness",
+          "variante": "H.2",
+          "ativa_kit_fraude": true,
+          "texto_achado": "Selfie identica a do contrato 901301 61082."
+        },
+        "I_correspondente": {
+          "resultado": "irregular",
+          "nome": "FONTES PROMOTORA",
+          "cnpj": "11.643.037/0001-54",
+          "cidade": "Florianopolis/SC",
+          "distancia_km": 3500,
+          "uf_autora": "AL",
+          "compartilhado_com_contratos": ["901301 61082"],
+          "risco": "ALTO",
+          "piloto_acionado": "merito-probatorio-misto/dados-correspondente-originador",
+          "variante": "I.1",
+          "texto_achado": "Mesmo correspondente FONTES PROMOTORA originou ambos os contratos no mesmo dia."
+        }
+      },
+      "achados_aplicaveis_count": 6,
+      "achados_alto_risco_count": 6,
+      "classificacao_individual": "ALTO_RISCO"
+    }
+  ],
+  "matriz_cruzada": {
+    "tabela_comparativa": [
+      {
+        "campo": "ip",
+        "linhas": [
+          {"contrato": "901301 61082", "valor": "10.1.1.1"},
+          {"contrato": "901301 61362", "valor": "10.1.1.1"}
+        ],
+        "padrao_detectado": true
+      },
+      {
+        "campo": "sessao",
+        "linhas": [
+          {"contrato": "901301 61082", "valor": "sess_abc123"},
+          {"contrato": "901301 61362", "valor": "sess_abc123"}
+        ],
+        "padrao_detectado": true
+      },
+      {
+        "campo": "selfie_hash",
+        "linhas": [
+          {"contrato": "901301 61082", "valor": "selfie_001"},
+          {"contrato": "901301 61362", "valor": "selfie_001"}
+        ],
+        "padrao_detectado": true
+      },
+      {
+        "campo": "correspondente",
+        "linhas": [
+          {"contrato": "901301 61082", "valor": "FONTES PROMOTORA"},
+          {"contrato": "901301 61362", "valor": "FONTES PROMOTORA"}
+        ],
+        "padrao_detectado": true
+      },
+      {
+        "campo": "horario_aceite",
+        "linhas": [
+          {"contrato": "901301 61082", "valor": "14:23:05"},
+          {"contrato": "901301 61362", "valor": "14:23:05"}
+        ],
+        "padrao_detectado": true
+      },
+      {
+        "campo": "hash_componente_termo_cadastro",
+        "linhas": [
+          {"contrato": "901301 61082", "valor": "sha256:def456..."},
+          {"contrato": "901301 61362", "valor": "sha256:def456..."}
+        ],
+        "padrao_detectado": true
+      }
+    ],
+    "padroes_count": 6,
+    "ativa_kit_fraude": true,
+    "ativa_cadeia_custodia": false,
+    "observacao_padrao": "6 padroes sistemicos detectados (IP, sessao, selfie, correspondente, horario, hash) - esquema estruturado, aciona kit-fraude."
+  },
+  "padroes_sistemicos": [
+    "Mesmo IP (10.1.1.1) entre os contratos 901301 61082 e 901301 61362 - operacao em lote no mesmo correspondente",
+    "Mesma session ID (sess_abc123) entre os dois contratos - sessao automatizada nao reaberta",
+    "Selfie reutilizada entre os contratos - mesma imagem facial, mesma roupa, mesma posicao",
+    "Mesmo correspondente (FONTES PROMOTORA, Florianopolis/SC) originou os dois contratos no mesmo dia (19/12/2023)",
+    "Aceite dos dois contratos as 14:23:05 - diferenca zero segundos, humanamente impossivel",
+    "Hash SHA-256 do termo INSS e do cadastro identico entre os dois contratos"
+  ],
+  "alertas": [
+    "Validador ITI: print externo nao realizado - anexar ao protocolo",
+    "L.3 ATIVO: TED destinado a Bradesco ag 3169, divergente do BB do INSS na epoca; usar tese calibrada (NAO afirmar conta de terceiro)"
+  ]
+}

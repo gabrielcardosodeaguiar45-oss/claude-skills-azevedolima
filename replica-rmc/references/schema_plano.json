@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema do plano editorial — _plano.json",
+  "description": "Produzido por consultor-vault-rmc e consumido pelo redator-replica-rmc. Traduz a árvore de decisão do vault em instruções concretas de redação.",
+  "type": "object",
+  "required": ["modelo_base", "cenario", "estrutura", "regras_aplicadas"],
+  "properties": {
+    "modelo_base": {
+      "type": "object",
+      "required": ["arquivo_vault", "uf", "variacao"],
+      "properties": {
+        "arquivo_vault": {"type": "string", "description": "Path relativo no vault, ex: Modelos/ReplicasRMC/modelos-por-estado/am/bmg-rcc-digital.md"},
+        "uf": {"type": "string"},
+        "variacao": {"type": "string", "description": "Slug da variação: bmg-rcc-digital, santander-rcc-fisico, etc."},
+        "docx_original": {"type": "string", "description": "Caminho absoluto do .docx base"}
+      }
+    },
+    "cenario": {
+      "type": "object",
+      "required": ["tipo_contratacao"],
+      "properties": {
+        "tipo_contratacao": {"type": "string", "enum": ["sem_contrato", "contrato_fisico", "contrato_digital"]},
+        "fraude_absoluta": {"type": "boolean", "description": "true quando não há contrato nem indício de anuência"},
+        "tem_rcc_gemeo": {"type": "boolean"},
+        "maues": {"type": "boolean", "description": "Cautela Juiz Anderson"},
+        "comarca_alerta": {"type": ["string", "null"]}
+      }
+    },
+    "estrutura": {
+      "type": "object",
+      "description": "Quais blocos da estrutura-padrao entram e em qual ordem",
+      "properties": {
+        "blocos_obrigatorios": {"type": "array", "items": {"type": "string"}, "default": ["identificacao", "tempestividade", "impugnacoes", "merito", "pedidos", "fechamento"]},
+        "sub_secoes_merito": {"type": "array", "items": {"type": "string"}, "description": "Ex: contratacao_digital_defeituosa, cartao_gemeo, 2via_massiva, refin_maquiador"},
+        "ordem_impugnacoes": {"type": "array", "items": {"type": "string"}, "description": "Ordem seguindo a contestação, não o CPC"}
+      }
+    },
+    "teses_nossas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "description": "slug da ficha em teses-modulares/nossas/"},
+          "posicao_na_peca": {"type": "string"},
+          "nucleo": {"type": "boolean", "description": "true se for tese central do caso"}
+        }
+      }
+    },
+    "teses_impugnacao": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "rebate_de": {"type": "string", "description": "Preliminar ou tese do banco que esta impugna"}
+        }
+      }
+    },
+    "blocos_reutilizaveis": {
+      "type": "object",
+      "description": "Blocos A/B/C de regras-de-adaptacao.md",
+      "properties": {
+        "bloco_A_2via_massiva": {"type": "boolean"},
+        "bloco_B_ted_conta_outra": {"type": "boolean"},
+        "bloco_C_bmg_pre_09_2023": {"type": "boolean"}
+      }
+    },
+    "precedentes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "citacao": {"type": "string"},
+          "uso": {"type": "string", "description": "Onde o redator deve citar"}
+        }
+      }
+    },
+    "quantificacao": {
+      "type": "object",
+      "properties": {
+        "dano_moral": {"type": "number"},
+        "dano_temporal": {"type": ["number", "null"]},
+        "restituicao_regime": {"type": "string", "enum": ["dobro_integral", "dobro_pos_30_03_2021", "simples"]},
+        "marco_30_03_2021": {"type": "boolean"}
+      }
+    },
+    "regras_aplicadas": {
+      "type": "array",
+      "description": "IDs das 16 regras que se aplicam ao caso (ex: [1, 4, 7, 12, 15])",
+      "items": {"type": "integer", "minimum": 1, "maximum": 16}
+    },
+    "alertas": {
+      "type": "array",
+      "description": "Pontos de atenção para o redator e revisor",
+      "items": {"type": "string"}
+    },
+    "_meta": {
+      "type": "object",
+      "properties": {
+        "data_plano": {"type": "string"},
+        "versao_schema": {"type": "string", "default": "1.0.0"},
+        "consultor_notas": {"type": "string"}
+      }
+    }
+  }
+}

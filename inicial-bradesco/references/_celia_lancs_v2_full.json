@@ -1,0 +1,1005 @@
+{
+  "validos": [
+    {
+      "pagina": "p001.png",
+      "linha": 15,
+      "data": "15/01/2020",
+      "docto": "0130120",
+      "valor": 0.96,
+      "parcial": true,
+      "linha_raw": "15/01/2020 TARIFA BANCARIA 0130120 0.96 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p001.png",
+      "linha": 23,
+      "data": "04/02/2020",
+      "docto": "0130120",
+      "valor": 19.91,
+      "parcial": true,
+      "linha_raw": "TARIFA BANCARIA 0130120 19.91 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p002.png",
+      "linha": 7,
+      "data": "03/03/2020",
+      "docto": "0130120",
+      "valor": 0.73,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0130120 0,73 25.91",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p002.png",
+      "linha": 9,
+      "data": "03/03/2020",
+      "docto": "0130220",
+      "valor": 21.6,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0130220 21.60 4,31",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p002.png",
+      "linha": 14,
+      "data": "13/03/2020",
+      "docto": "0110320",
+      "valor": 4.31,
+      "parcial": true,
+      "linha_raw": "13/03/2020 TARIFA BANCARIA 0110320 4,31 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p002.png",
+      "linha": 21,
+      "data": "02/04/2020",
+      "docto": "0110320",
+      "valor": 16.91,
+      "parcial": true,
+      "linha_raw": "TARIFA BANCARIA 0110320 16.91 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p003.png",
+      "linha": 6,
+      "data": "05/05/2020",
+      "docto": "0110320",
+      "valor": 0.38,
+      "parcial": false,
+      "linha_raw": "05/05/2020 TARIFA BANCARIA 0110320 0,38 21,33",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p003.png",
+      "linha": 8,
+      "data": "05/05/2020",
+      "docto": "0130420",
+      "valor": 21.33,
+      "parcial": true,
+      "linha_raw": "TARIFA BANCARIA 0130420 21.33 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p003.png",
+      "linha": 15,
+      "data": "02/06/2020",
+      "docto": "0110520",
+      "valor": 21.6,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0110520 21.,60 127.81",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p003.png",
+      "linha": 17,
+      "data": "02/06/2020",
+      "docto": "0130420",
+      "valor": 0.27,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0130420 0.27 127.54",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p003.png",
+      "linha": 24,
+      "data": "15/06/2020",
+      "docto": "0100620",
+      "valor": 4.83,
+      "parcial": true,
+      "linha_raw": "TARIFA BANCARIA 0100620 4,83 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p003.png",
+      "linha": 30,
+      "data": "02/07/2020",
+      "docto": "0100620",
+      "valor": 16.77,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0100620 16.77 203,70",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p004.png",
+      "linha": 6,
+      "data": "15/07/2020",
+      "docto": "0100720",
+      "valor": 21.6,
+      "parcial": false,
+      "linha_raw": "15/07/2020 TARIFA BANCARIA 0100720 21,60 46,69",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p004.png",
+      "linha": 20,
+      "data": "19/08/2020",
+      "docto": "0110820",
+      "valor": 21.6,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0110820 21.60 0.00",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p004.png",
+      "linha": 31,
+      "data": "15/09/2020",
+      "docto": "0100920",
+      "valor": 21.6,
+      "parcial": false,
+      "linha_raw": "15/09/2020 TARIFA BANCARIA 0100920 21.,60 136.16",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p005.png",
+      "linha": 20,
+      "data": "27/10/2020",
+      "docto": "0131020",
+      "valor": 27.7,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0131020 27.70 1.919.66",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p006.png",
+      "linha": 6,
+      "data": "18/11/2020",
+      "docto": "0161120",
+      "valor": 0.92,
+      "parcial": true,
+      "linha_raw": "18/11/2020 TARIFA BANCARIA 0161120 0,92 0,00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p006.png",
+      "linha": 14,
+      "data": "02/12/2020",
+      "docto": "0161120",
+      "valor": 26.78,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0161120 26.78 0.25",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p008.png",
+      "linha": 14,
+      "data": "05/01/2021",
+      "docto": "0101220",
+      "valor": 27.7,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0101220 27.70 4.53",
+      "subtitulo": "CESTA BEXPRESSO 4"
+    },
+    {
+      "pagina": "p008.png",
+      "linha": 16,
+      "data": "15/01/2021",
+      "docto": "0120121",
+      "valor": 4.53,
+      "parcial": true,
+      "linha_raw": "15/01/2021 TARIFA BANCARIA 0120121 4.53 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p008.png",
+      "linha": 20,
+      "data": "02/02/2021",
+      "docto": "0120121",
+      "valor": 23.17,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0120121 23.17 729.13",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p009.png",
+      "linha": 6,
+      "data": "02/03/2021",
+      "docto": "0100221",
+      "valor": 27.7,
+      "parcial": false,
+      "linha_raw": "02/03/2021 TARIFA BANCARIA 0100221 27,70 626,31",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p009.png",
+      "linha": 13,
+      "data": "15/03/2021",
+      "docto": "0100321",
+      "valor": 6.31,
+      "parcial": true,
+      "linha_raw": "15/03/2021 TARIFA BANCARIA 0100321 6.31 0,00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p009.png",
+      "linha": 21,
+      "data": "05/04/2021",
+      "docto": "0100321",
+      "valor": 21.39,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0100321 21.39 5,.35",
+      "subtitulo": "CESTA BEXPRESSO+"
+    },
+    {
+      "pagina": "p009.png",
+      "linha": 23,
+      "data": "15/04/2021",
+      "docto": "0120421",
+      "valor": 5.35,
+      "parcial": true,
+      "linha_raw": "15/04/2021 TARIFA BANCARIA 0120421 5.35 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p009.png",
+      "linha": 30,
+      "data": "04/05/2021",
+      "docto": "0120421",
+      "valor": 27.85,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0120421 27,85 4.08",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p009.png",
+      "linha": 32,
+      "data": "14/05/2021",
+      "docto": "0120521",
+      "valor": 4.08,
+      "parcial": true,
+      "linha_raw": "14/05/2021 TARIFA BANCARIA 0120521 4.08 0,00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p010.png",
+      "linha": 12,
+      "data": "02/06/2021",
+      "docto": "0120521",
+      "valor": 29.12,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0120521 29.12 7.62",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p010.png",
+      "linha": 14,
+      "data": "15/06/2021",
+      "docto": "0100621",
+      "valor": 7.62,
+      "parcial": true,
+      "linha_raw": "15/06/2021 TARIFA BANCARIA 0100621 7.62 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p010.png",
+      "linha": 20,
+      "data": "02/07/2021",
+      "docto": "0100621",
+      "valor": 25.58,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0100621 25.58 1.051.16",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p010.png",
+      "linha": 27,
+      "data": "15/07/2021",
+      "docto": "0120721",
+      "valor": 1.16,
+      "parcial": true,
+      "linha_raw": "15/07/2021 TARIFA BANCARIA 0120721 1,16 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p011.png",
+      "linha": 8,
+      "data": "03/08/2021",
+      "docto": "0120721",
+      "valor": 29.42,
+      "parcial": true,
+      "linha_raw": "TARIFA BANCARIA 0120721 29,42 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p011.png",
+      "linha": 11,
+      "data": "02/09/2021",
+      "docto": "0110821",
+      "valor": 33.2,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0110821 33.20 667.10",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p011.png",
+      "linha": 13,
+      "data": "02/09/2021",
+      "docto": "0120721",
+      "valor": 2.62,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0120721 2.62 664.48",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p011.png",
+      "linha": 23,
+      "data": "15/09/2021",
+      "docto": "0100921",
+      "valor": 8.58,
+      "parcial": true,
+      "linha_raw": "15/09/2021 TARIFA BANCARIA 0100921 8.58 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p011.png",
+      "linha": 28,
+      "data": "23/09/2021",
+      "docto": "0100921",
+      "valor": 24.62,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0100921 24,62 0,38",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p012.png",
+      "linha": 12,
+      "data": "03/11/2021",
+      "docto": "0111021",
+      "valor": 38.6,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0111021 38.60 486.39",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p012.png",
+      "linha": 18,
+      "data": "12/11/2021",
+      "docto": "0101121",
+      "valor": 0.68,
+      "parcial": true,
+      "linha_raw": "12/11/2021 TARIFA BANCARIA 0101121 0.68 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p012.png",
+      "linha": 21,
+      "data": "02/12/2021",
+      "docto": "0101121",
+      "valor": 37.92,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0101121 37.92 640.38",
+      "subtitulo": "CESTA BEXPRESSOA"
+    },
+    {
+      "pagina": "p014.png",
+      "linha": 11,
+      "data": "04/01/2022",
+      "docto": "0101221",
+      "valor": 38.6,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0101221 38.60 9.25",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p014.png",
+      "linha": 19,
+      "data": "02/02/2022",
+      "docto": "0170122",
+      "valor": 38.6,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0170122 38.60 0.39",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p014.png",
+      "linha": 25,
+      "data": "04/03/2022",
+      "docto": "0110222",
+      "valor": 38.6,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0110222 38,60 557.99",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p014.png",
+      "linha": 29,
+      "data": "16/03/2022",
+      "docto": "0150322",
+      "valor": 0.99,
+      "parcial": true,
+      "linha_raw": "16/03/2022 TARIFA BANCARIA 0150322 0.99 0,00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p015.png",
+      "linha": 6,
+      "data": "04/04/2022",
+      "docto": "0150322",
+      "valor": 37.61,
+      "parcial": false,
+      "linha_raw": "04/04/2022 TARIFA BANCARIA 0150322 37,61 717,45",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p015.png",
+      "linha": 10,
+      "data": "18/04/2022",
+      "docto": "0130422",
+      "valor": 0.45,
+      "parcial": true,
+      "linha_raw": "18/04/2022 TARIFA BANCARIA 0130422 0,45 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p015.png",
+      "linha": 13,
+      "data": "03/05/2022",
+      "docto": "0130422",
+      "valor": 44.05,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0130422 44,05 1.313.40",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p015.png",
+      "linha": 17,
+      "data": "13/05/2022",
+      "docto": "0110522",
+      "valor": 3.4,
+      "parcial": true,
+      "linha_raw": "13/05/2022 TARIFA BANCARIA 0110522 3.40 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p015.png",
+      "linha": 20,
+      "data": "02/06/2022",
+      "docto": "0110522",
+      "valor": 41.1,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0110522 41.10 1.316.35",
+      "subtitulo": "CESTA BEXPRESSO +"
+    },
+    {
+      "pagina": "p015.png",
+      "linha": 24,
+      "data": "15/06/2022",
+      "docto": "0100622",
+      "valor": 1.35,
+      "parcial": true,
+      "linha_raw": "15/06/2022 TARIFA BANCARIA 0100622 1.35 0,00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p015.png",
+      "linha": 29,
+      "data": "22/06/2022",
+      "docto": "0100622",
+      "valor": 43.15,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0100622 43.,15 0.00",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p016.png",
+      "linha": 8,
+      "data": "18/07/2022",
+      "docto": "0150722",
+      "valor": 44.5,
+      "parcial": false,
+      "linha_raw": "18/07/2022 TARIFA BANCARIA 0150722 44,50 523,85",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p016.png",
+      "linha": 17,
+      "data": "17/08/2022",
+      "docto": "0150822",
+      "valor": 1.59,
+      "parcial": true,
+      "linha_raw": "17/08/2022 TARIFA BANCARIA 0150822 1.59 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p016.png",
+      "linha": 22,
+      "data": "02/09/2022",
+      "docto": "0150822",
+      "valor": 42.91,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0150822 42.91 3.80",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p016.png",
+      "linha": 27,
+      "data": "15/09/2022",
+      "docto": "0130922",
+      "valor": 3.8,
+      "parcial": true,
+      "linha_raw": "15/09/2022 TARIFA BANCARIA 0130922 3,80 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p016.png",
+      "linha": 32,
+      "data": "04/10/2022",
+      "docto": "0130922",
+      "valor": 40.7,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0130922 40.70 1,01",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p016.png",
+      "linha": 34,
+      "data": "18/10/2022",
+      "docto": "0141022",
+      "valor": 101.0,
+      "parcial": true,
+      "linha_raw": "18/10/2022 TARIFA BANCARIA 0141022 101 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p017.png",
+      "linha": 11,
+      "data": "03/11/2022",
+      "docto": "0141022",
+      "valor": 48.89,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0141022 48,89 0.35",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p017.png",
+      "linha": 16,
+      "data": "18/11/2022",
+      "docto": "0171122",
+      "valor": 0.35,
+      "parcial": true,
+      "linha_raw": "18/11/2022 TARIFA BANCARIA 0171122 0.35 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p017.png",
+      "linha": 25,
+      "data": "05/12/2022",
+      "docto": "0171122",
+      "valor": 49.55,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0171122 49,55 2.05",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p017.png",
+      "linha": 27,
+      "data": "15/12/2022",
+      "docto": "0141222",
+      "valor": 2.05,
+      "parcial": true,
+      "linha_raw": "15/12/2022 TARIFA BANCARIA 0141222 2,05 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p019.png",
+      "linha": 12,
+      "data": "03/01/2023",
+      "docto": "0141222",
+      "valor": 45.93,
+      "parcial": true,
+      "linha_raw": "TARIFA BANCARIA 0141222 45.93 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p019.png",
+      "linha": 19,
+      "data": "02/02/2023",
+      "docto": "0110123",
+      "valor": 49.9,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0110123 49.90 4.37",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p019.png",
+      "linha": 21,
+      "data": "02/02/2023",
+      "docto": "0141222",
+      "valor": 1.92,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0141222 1.92 2,45",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p019.png",
+      "linha": 23,
+      "data": "15/02/2023",
+      "docto": "0130223",
+      "valor": 2.45,
+      "parcial": true,
+      "linha_raw": "15/02/2023 TARIFA BANCARIA 0130223 2,45 0,00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p019.png",
+      "linha": 34,
+      "data": "17/02/2023",
+      "docto": "0130223",
+      "valor": 47.45,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0130223 47,45 2.780.86",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p020.png",
+      "linha": 20,
+      "data": "15/03/2023",
+      "docto": "0100323",
+      "valor": 0.51,
+      "parcial": true,
+      "linha_raw": "15/03/2023 TARIFA BANCARIA 0100323 0.51 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p020.png",
+      "linha": 30,
+      "data": "04/04/2023",
+      "docto": "0100323",
+      "valor": 49.39,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0100323 49,39 3,18",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p020.png",
+      "linha": 32,
+      "data": "14/04/2023",
+      "docto": "0110423",
+      "valor": 3.18,
+      "parcial": true,
+      "linha_raw": "14/04/2023 TARIFA BANCARIA 0110423 3,18 0,00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p021.png",
+      "linha": 8,
+      "data": "03/05/2023",
+      "docto": "0110423",
+      "valor": 46.72,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0110423 46.72 3.66",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p021.png",
+      "linha": 13,
+      "data": "15/05/2023",
+      "docto": "0110523",
+      "valor": 3.66,
+      "parcial": true,
+      "linha_raw": "15/05/2023 TARIFA BANCARIA 0110523 3.66 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p021.png",
+      "linha": 18,
+      "data": "18/05/2023",
+      "docto": "0110523",
+      "valor": 46.24,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0110523 46.24 304.85",
+      "subtitulo": "CESTA BEXPRESSO+"
+    },
+    {
+      "pagina": "p021.png",
+      "linha": 27,
+      "data": "15/06/2023",
+      "docto": "0120623",
+      "valor": 1.25,
+      "parcial": true,
+      "linha_raw": "15/06/2023 TARIFA BANCARIA 0120623 1.25 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p022.png",
+      "linha": 6,
+      "data": "04/07/2023",
+      "docto": "0120623",
+      "valor": 48.65,
+      "parcial": false,
+      "linha_raw": "04/07/2023 TARIFA BANCARIA 0120623 48.65 3,12",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p022.png",
+      "linha": 13,
+      "data": "14/07/2023",
+      "docto": "0130723",
+      "valor": 3.12,
+      "parcial": true,
+      "linha_raw": "14/07/2023 TARIFA BANCARIA 0130723 3.12 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p022.png",
+      "linha": 16,
+      "data": "17/07/2023",
+      "docto": "0130723",
+      "valor": 46.78,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0130723 46.78 80.83",
+      "subtitulo": "CESTA BEXPRESSO+"
+    },
+    {
+      "pagina": "p022.png",
+      "linha": 27,
+      "data": "15/08/2023",
+      "docto": "0090823",
+      "valor": 9.21,
+      "parcial": true,
+      "linha_raw": "15/08/2023 TARIFA BANCARIA 0090823 9.21 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p023.png",
+      "linha": 8,
+      "data": "04/09/2023",
+      "docto": "0090823",
+      "valor": 42.39,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0090823 42,39 7,76",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p023.png",
+      "linha": 13,
+      "data": "15/09/2023",
+      "docto": "0120923",
+      "valor": 7.76,
+      "parcial": true,
+      "linha_raw": "15/09/2023 TARIFA BANCARIA 0120923 7.76 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p023.png",
+      "linha": 21,
+      "data": "22/09/2023",
+      "docto": "0120923",
+      "valor": 43.84,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0120923 43.84 1.354.06",
+      "subtitulo": "CESTA BEXPRESSO 4"
+    },
+    {
+      "pagina": "p024.png",
+      "linha": 17,
+      "data": "03/11/2023",
+      "docto": "0091023",
+      "valor": 51.53,
+      "parcial": true,
+      "linha_raw": "TARIFA BANCARIA 0091023 51.53 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p024.png",
+      "linha": 26,
+      "data": "04/12/2023",
+      "docto": "0091023",
+      "valor": 0.07,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0091023 0.07 458.39",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p024.png",
+      "linha": 28,
+      "data": "04/12/2023",
+      "docto": "0101123",
+      "valor": 51.6,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0101123 51.60 406,79",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p024.png",
+      "linha": 30,
+      "data": "15/12/2023",
+      "docto": "0111223",
+      "valor": 51.6,
+      "parcial": false,
+      "linha_raw": "15/12/2023 TARIFA BANCARIA 0111223 51.60 355.19",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p026.png",
+      "linha": 17,
+      "data": "15/01/2024",
+      "docto": "0110124",
+      "valor": 1.98,
+      "parcial": true,
+      "linha_raw": "15/01/2024 TARIFA BANCARIA 0110124 1.98 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p026.png",
+      "linha": 22,
+      "data": "02/02/2024",
+      "docto": "0110124",
+      "valor": 49.62,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0110124 49.,62 626,40",
+      "subtitulo": "CESTA BEXPRESSO 4"
+    },
+    {
+      "pagina": "p026.png",
+      "linha": 26,
+      "data": "15/02/2024",
+      "docto": "0090224",
+      "valor": 6.4,
+      "parcial": true,
+      "linha_raw": "15/02/2024 TARIFA BANCARIA 0090224 6,40 0,00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p026.png",
+      "linha": 32,
+      "data": "16/02/2024",
+      "docto": "0090224",
+      "valor": 50.35,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0090224 50.35 0,93",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p027.png",
+      "linha": 10,
+      "data": "15/03/2024",
+      "docto": "0110324",
+      "valor": 6.95,
+      "parcial": true,
+      "linha_raw": "15/03/2024 TARIFA BANCARIA 0110324 6.95 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p027.png",
+      "linha": 17,
+      "data": "02/04/2024",
+      "docto": "0110324",
+      "valor": 49.8,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0110324 49.80 3.94",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p027.png",
+      "linha": 19,
+      "data": "15/04/2024",
+      "docto": "0110424",
+      "valor": 3.94,
+      "parcial": true,
+      "linha_raw": "15/04/2024 TARIFA BANCARIA 0110424 3.94 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p027.png",
+      "linha": 26,
+      "data": "03/05/2024",
+      "docto": "0110424",
+      "valor": 52.81,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0110424 52.81 3,89",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p032.png",
+      "linha": 18,
+      "data": "15/04/2025",
+      "docto": "0100425",
+      "valor": 8.47,
+      "parcial": true,
+      "linha_raw": "15/04/2025 TARIFA BANCARIA 0100425 8.,47 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p032.png",
+      "linha": 25,
+      "data": "05/05/2025",
+      "docto": "0100425",
+      "valor": 55.13,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0100425 55.13 5,03",
+      "subtitulo": "CESTA BEXPRESSO A"
+    },
+    {
+      "pagina": "p032.png",
+      "linha": 27,
+      "data": "15/05/2025",
+      "docto": "0120525",
+      "valor": 5.03,
+      "parcial": true,
+      "linha_raw": "15/05/2025 TARIFA BANCARIA 0120525 5,03 0.00",
+      "subtitulo": "VRPARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p032.png",
+      "linha": 32,
+      "data": "03/06/2025",
+      "docto": "0120525",
+      "valor": 58.57,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0120525 58.57 202.96",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p033.png",
+      "linha": 8,
+      "data": "13/06/2025",
+      "docto": "0090625",
+      "valor": 8.21,
+      "parcial": true,
+      "linha_raw": "13/06/2025 TARIFA BANCARIA 0090625 8.21 0.00",
+      "subtitulo": "VR PARCIAL CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p033.png",
+      "linha": 18,
+      "data": "02/07/2025",
+      "docto": "0090625",
+      "valor": 55.39,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0090625 55.39 4.54",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p033.png",
+      "linha": 29,
+      "data": "04/08/2025",
+      "docto": "0080725",
+      "valor": 63.6,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0080725 63.60 3,14",
+      "subtitulo": "CESTA BEXPRESSO +"
+    },
+    {
+      "pagina": "p034.png",
+      "linha": 8,
+      "data": "02/09/2025",
+      "docto": "0080825",
+      "valor": 63.6,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0080825 63.60 349,95",
+      "subtitulo": "CESTA BEXPRESSO4"
+    },
+    {
+      "pagina": "p034.png",
+      "linha": 17,
+      "data": "02/10/2025",
+      "docto": "0100925",
+      "valor": 64.75,
+      "parcial": false,
+      "linha_raw": "TARIFA BANCARIA 0100925 64.75 0.18",
+      "subtitulo": "CESTA BEXPRESSO+"
+    }
+  ],
+  "pendencias": []
+}

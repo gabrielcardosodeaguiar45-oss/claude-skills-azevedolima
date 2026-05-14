@@ -119,7 +119,9 @@ def encontrar_procuracao(pasta_kit: str, pasta_cliente: str | None = None) -> st
 CHAVES_BANCO = ['BMG', 'BRADESCO', 'ITAU', 'C6', 'PAN', 'CAIXA',
                 'SANTANDER', 'DAYCOVAL', 'MERCANTIL', 'FACTA',
                 'AGIBANK', 'OLE', 'BGN', 'CETELEM', 'MASTER',
-                'SAFRA', 'CREFISA', 'PARANA', 'DIGIO', 'BANRISUL']
+                'SAFRA', 'CREFISA', 'PARANA', 'DIGIO', 'BANRISUL',
+                'CAPITAL', 'CAPITALCONSIG', 'INBURSA', 'INTER',
+                'BB', 'BANCODOBRASIL', 'DOBRASIL', 'BRB', 'PINE']
 
 
 def _resolver_pasta_acao(pasta_cliente: str, path_relativo: str) -> str | None:
@@ -226,9 +228,16 @@ def agrupar_contratos_por_banco_tese(contratos: list, path_relativo: str,
         beneficio = partes[0].strip().upper()
         pasta_banco = partes[1].strip()
     pasta_banco_norm = re.sub(r'\s+', '', pasta_banco.upper())
+    # Tirar acentos para match com CHAVES_BANCO (que é ASCII)
+    import unicodedata as _ud
+    pasta_banco_norm = _ud.normalize('NFD', pasta_banco_norm).encode('ascii', 'ignore').decode('ascii')
     is_rmc_rcc = 'RMC-RCC' in pasta_banco_norm or 'RMC/RCC' in pasta_banco_norm
 
     chaves_pasta = [ch for ch in CHAVES_BANCO if ch in pasta_banco_norm]
+    # Aliases: se a pasta tem "BANCODOBRASIL" ou "DOBRASIL", também aceita banco_chave='BB'
+    if 'BANCODOBRASIL' in chaves_pasta or 'DOBRASIL' in chaves_pasta:
+        if 'BB' not in chaves_pasta:
+            chaves_pasta.append('BB')
     if not chaves_pasta:
         return {}
 
@@ -423,6 +432,23 @@ def montar_mapa_placeholders(qual: dict, banco_info: dict, advogado: dict,
     competencias = [c.get('competencia_inicio') for c in contratos if c.get('competencia_inicio')]
     contrato_competencia_inicio = min(competencias, key=_comp_key) if competencias else ''
 
+    # Dados do primeiro contrato (mais antigo) — usados em templates que pedem
+    # CONTRATO_DATA_INCLUSAO, CONTRATO_QTD_PARCELAS, CONTRATO_VALOR_EMPRESTIMO, CONTRATO_VALOR_PARCELA.
+    # Quando há múltiplos contratos, usa o mais antigo por competência.
+    contrato_referencia = None
+    for c in contratos:
+        if contrato_referencia is None:
+            contrato_referencia = c
+        elif c.get('competencia_inicio') and contrato_referencia.get('competencia_inicio'):
+            if _comp_key(c['competencia_inicio']) < _comp_key(contrato_referencia['competencia_inicio']):
+                contrato_referencia = c
+    if contrato_referencia is None:
+        contrato_referencia = {}
+    contrato_data_inclusao = contrato_referencia.get('data_inclusao') or ''
+    contrato_qtd_parcelas = str(contrato_referencia.get('qtd_parcelas') or '')
+    contrato_valor_emprestimo = contrato_referencia.get('valor_emprestado') or ''
+    contrato_valor_parcela = contrato_referencia.get('valor_parcela') or ''
+
     # Endereço — separa número do logradouro (templates Bradesco usam
     # {{CLIENTE_LOGRADOURO}}, n° {{CLIENTE_NUMERO}}, bairro ...).
     logradouro_full = qual.get('logradouro', '')
@@ -501,6 +527,10 @@ def montar_mapa_placeholders(qual: dict, banco_info: dict, advogado: dict,
 
         '{{CONTRATO_NUMEROS}}': contrato_numeros,
         '{{CONTRATO_COMPETENCIA_INICIO}}': contrato_competencia_inicio,
+        '{{CONTRATO_DATA_INCLUSAO}}': contrato_data_inclusao,
+        '{{CONTRATO_QTD_PARCELAS}}': contrato_qtd_parcelas,
+        '{{CONTRATO_VALOR_EMPRESTIMO}}': contrato_valor_emprestimo,
+        '{{CONTRATO_VALOR_PARCELA}}': contrato_valor_parcela,
     }
 
     # Condicionais ANTES de individuais — substitui blocos completos quando campo vazio
@@ -566,19 +596,28 @@ def montar_dossie_notificacao(pasta_acao_abs: str, output_dir_banco: str,
             num = m.group(1)
             raiz = num.split('-')[0]
             if num in numeros_banco or raiz in numeros_raiz:
+                # Encurta nome do dossiê para evitar Windows path-260 com client folders longos
+                dest_name = nome
+                dest_full = os.path.join(output_dir_banco, dest_name)
+                if len(dest_full) > 240:
+                    dest_name = f'2. Procuração {num}.pdf'
+                    dest_full = os.path.join(output_dir_banco, dest_name)
                 shutil.copy2(
                     os.path.join(pasta_acao_abs, nome),
-                    os.path.join(output_dir_banco, nome),
+                    dest_full,
                 )
                 copiados += 1
 
     # 3. Documentos comuns na pasta_acao — APENAS:
-    #    - RG / CPF (identidade do cliente)
+    #    - RG / CPF do cliente (item 3.) e do rogado/testemunhas (item 3.1, 3.2, 3.3)
     #    - HISCON (Histórico de empréstimo grifado) — comprova os descontos
     #    - HISCRE (Histórico de pagamento/crédito) — extrato dos descontos
-    # Hipossuficiência e Comprovante de Residência foram REMOVIDOS do dossiê
-    # extrajudicial (13/05/2026, Gabriel) — não são necessários para notificar
-    # o banco; ficam para a inicial.
+    # REMOVIDOS do dossiê extrajudicial:
+    # - Hipossuficiência (4.) — só para inicial
+    # - Comprovante de residência (5.) — só para inicial
+    # - Declaração de domicílio (5.1) — só para inicial
+    # - RG do declarante terceiro (5.2) — vinculado ao comprovante/declaração que
+    #   não vão na notif, então também não envia (decisão 13/05/2026, Gabriel)
     if os.path.isdir(pasta_acao_abs):
         for nome in os.listdir(pasta_acao_abs):
             if not nome.lower().endswith('.pdf'):
@@ -587,17 +626,38 @@ def montar_dossie_notificacao(pasta_acao_abs: str, output_dir_banco: str,
             # Pula procurações (já tratadas acima)
             if 'PROCURA' in nome_upper:
                 continue
-            # Pula hipossuficiência e comprovante de residência (decisão 13/05/2026)
-            if any(k in nome_upper for k in ['HIPOSS', 'COMPROV', 'RESID']):
+            # Pula hipossuficiência, comprovante e declaração de domicílio + RG
+            # do declarante terceiro (item 5.x — vinculados ao comprovante)
+            if any(k in nome_upper for k in ['HIPOSS', 'COMPROV', 'RESID', 'DOMICI', 'DECLARANTE TERCEIR']):
+                continue
+            # Pula explicitamente prefixos "5." e "5.1"/"5.2" (item 5 inteiro fica para inicial)
+            if re.match(r'^5(\.\d+)?\s*[-.\s]', nome):
                 continue
             # Inclui se for RG/CPF ou HISCON/HISCRE
             if any(k in nome_upper for k in [
                 'RG', 'CPF',
                 'HIST', 'EMPRESTIMO', 'EMPRÉSTIMO', 'PAGAMENTO', 'CRÉDITO', 'CREDITO',
             ]):
+                dest_full = os.path.join(output_dir_banco, nome)
+                # Defesa Windows path-260
+                if len(dest_full) > 240:
+                    # Encurta — extrai número canônico (3, 3.1, 3.2, 6, 7) + sufixo curto
+                    import re as _re
+                    m_num = _re.match(r'^(\d+(?:\.\d+)?)\.\s*', nome)
+                    prefix = m_num.group(1) if m_num else 'X'
+                    if 'HIST' in nome_upper and ('CREDIT' in nome_upper or 'PAGAMENT' in nome_upper):
+                        dest_full = os.path.join(output_dir_banco, f'7. HISCRE.pdf')
+                    elif 'HIST' in nome_upper:
+                        dest_full = os.path.join(output_dir_banco, f'6. HISCON.pdf')
+                    elif 'ROGAD' in nome_upper:
+                        dest_full = os.path.join(output_dir_banco, f'{prefix} RG rogado.pdf')
+                    elif 'TESTEM' in nome_upper:
+                        dest_full = os.path.join(output_dir_banco, f'{prefix} RG testemunha.pdf')
+                    else:
+                        dest_full = os.path.join(output_dir_banco, f'{prefix} RG.pdf')
                 shutil.copy2(
                     os.path.join(pasta_acao_abs, nome),
-                    os.path.join(output_dir_banco, nome),
+                    dest_full,
                 )
                 copiados += 1
 
@@ -703,8 +763,17 @@ def processar_cliente(pasta_cliente: str, log: list):
             # procurações específicas + RG/CPF + HISCON/HISCRE).
             output_dir = os.path.join(pasta_acao_abs, 'notificacao', banco_chave)
             os.makedirs(output_dir, exist_ok=True)
-            nome_output = f'Notificação Extrajudicial - {banco_chave} - {tese.upper()}.docx'
+            # Nome curto para evitar Windows path-260 em pastas profundas.
+            # Versão longa antiga: 'Notificação Extrajudicial - {banco} - {tese}.docx'
+            nome_output = f'Notif - {banco_chave} - {tese.upper()}.docx'
             output_path = os.path.join(output_dir, nome_output)
+            # Defesa extra para Windows path-260 (na verdade limite efetivo ~230
+            # pois validador depois adiciona "_FALHOU_PLACEHOLDERS.docx" como
+            # sufixo se houver placeholders restantes).
+            if len(output_path) > 220:
+                tese_short = 'RMC' if 'rmc' in tese else ('RCC' if 'rcc' in tese else 'NC')
+                nome_output = f'Notif {banco_chave[:6]} {tese_short}.docx'
+                output_path = os.path.join(output_dir, nome_output)
 
             try:
                 rel = substituir_em_docx(template, mapa, output_path)
@@ -747,7 +816,9 @@ def processar_cliente(pasta_cliente: str, log: list):
                 except Exception as e:
                     print(f'  [ERR] {path_rel}/{banco_chave}: {e}')
             except Exception as e:
+                import traceback
                 print(f'  [ERR] {path_rel}/{banco_chave}: {e}')
+                traceback.print_exc()
 
     log[-1]['status'] = 'ok' if log[-1]['notificacoes'] else 'sem-notificacoes'
 

@@ -1,0 +1,91 @@
+{
+  "nome": "Apelação-Dano-moral-majoração-um-contrato-superior-a-10-boa-vista-do-ramos",
+  "total_paragrafos": 103,
+  "paragrafos_conteudo": 75,
+  "paragrafos_vazios": 28,
+  "folha_rosto_chars": 1581,
+  "secoes_titulos": [
+    {
+      "linha": 86,
+      "estilo": "2. Título",
+      "titulo": "DA TEMPESTIVIDADE"
+    },
+    {
+      "linha": 95,
+      "estilo": "2. Título",
+      "titulo": "DA DISPENSA DE PREPARO"
+    },
+    {
+      "linha": 104,
+      "estilo": "2. Título",
+      "titulo": "DAS RAZÕES E FUNDAMENTOS JURÍDICOS"
+    },
+    {
+      "linha": 107,
+      "estilo": "3.1 Subtítulo intermediário",
+      "titulo": "Dos danos morais – quantum indenizatório – majoração"
+    },
+    {
+      "linha": 230,
+      "estilo": "3.1 Subtítulo intermediário",
+      "titulo": "Dos consectários legais"
+    },
+    {
+      "linha": 245,
+      "estilo": "2. Título",
+      "titulo": "DOS PEDIDOS"
+    },
+    {
+      "linha": 248,
+      "estilo": "3.1 Subtítulo intermediário",
+      "titulo": "Diante do exposto, requer-se:"
+    }
+  ],
+  "n_secoes": 7,
+  "jurisprudencia_tjam": [
+    {
+      "numero": "0619373-79.2020.8.04.0001",
+      "relator": "Délcio Luís Santos",
+      "camara": "Segunda Câmara Cível",
+      "data": "02/06/2023"
+    }
+  ],
+  "n_juris_tjam": 1,
+  "resps": [],
+  "n_resps": 0,
+  "placeholders_xxx": [
+    "XXXX",
+    "XXXXXX",
+    "XXXXXXX",
+    "XXXXXXXX"
+  ],
+  "valores_rs": [
+    "1.000,00",
+    "10.000,00",
+    "144,97",
+    "15.000,00",
+    "684,65",
+    "787,99"
+  ],
+  "datas": [
+    "02/06/2023",
+    "11/11/2025",
+    "16 de fevereiro de 2026",
+    "29/08/2024",
+    "30/08/2024"
+  ],
+  "nomes_caixa_alta": [
+    "ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO",
+    "ALEGAÇÃO AUTORAL TEMA REPETITIVO",
+    "APELAÇÃO CÍVEL",
+    "AUSÊNCIA DE PROVA IDÔNEA",
+    "AÇÃO DE OBRIGAÇÃO DE FAZER",
+    "BANCO APELANTE QUE NÃO SE DESINCUMBIU",
+    "CONTRATOS BANCÁRIOS",
+    "DA DISPENSA DE PREPARO",
+    "DA TEMPESTIVIDADE",
+    "DANO MORAL"
+  ],
+  "erros_modelo": [],
+  "n_erros": 0
+}

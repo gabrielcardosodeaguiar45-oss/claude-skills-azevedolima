@@ -1,0 +1,59 @@
+{
+  "escritorio": "AZEVEDO LIMA E REBONATTO ADVOCACIA E CONSULTORIA",
+  "oab_escritorio": {"uf": "SC", "numero": "4528"},
+  "advogados": [
+    {
+      "nome": "TIAGO DE AZEVEDO LIMA",
+      "papel": "Sócio",
+      "template": 1,
+      "inscricoes": [
+        {"uf": "AL", "numero": "20906A"},
+        {"uf": "BA", "numero": "80006"},
+        {"uf": "MG", "numero": "228433"},
+        {"uf": "RS", "numero": "139330A"},
+        {"uf": "SC", "numero": "36672"},
+        {"uf": "SE", "numero": "1850A"}
+      ]
+    },
+    {
+      "nome": "EDUARDO FERNANDO REBONATTO",
+      "papel": "Sócio",
+      "template": 1,
+      "inscricoes": [
+        {"uf": "AM", "numero": "A2118"},
+        {"uf": "BA", "numero": "77088"},
+        {"uf": "PR", "numero": "132523"},
+        {"uf": "SC", "numero": "36592"}
+      ]
+    },
+    {
+      "nome": "ALEXANDRE RAIZEL DE MEIRA",
+      "papel": "Colaborador",
+      "template": 2,
+      "inscricoes": [
+        {"uf": "MG", "numero": "230436"},
+        {"uf": "PE", "numero": "69441"},
+        {"uf": "SC", "numero": "68186"},
+        {"uf": "SE", "numero": "1901A"}
+      ]
+    },
+    {
+      "nome": "GABRIEL CARDOSO DE AGUIAR",
+      "papel": "Colaborador",
+      "template": 2,
+      "inscricoes": [
+        {"uf": "BA", "numero": "88973"},
+        {"uf": "SC", "numero": "76040"}
+      ]
+    },
+    {
+      "nome": "PATRICK WILLIAN DA SILVA",
+      "papel": "Colaborador",
+      "template": 2,
+      "inscricoes": [
+        {"uf": "AM", "numero": "A2638"},
+        {"uf": "SC", "numero": "53969"}
+      ]
+    }
+  ]
+}

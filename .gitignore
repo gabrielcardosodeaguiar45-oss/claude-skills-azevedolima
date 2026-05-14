@@ -13,8 +13,22 @@ _pente_fino/
 _celia_tarifas_data*.json
 _legacy/
 
+# Backups com timestamp (gerados por scripts antes de reescrever templates)
+*.bak_*
+*.docx.bak*
+
 # Templates/Assets binários grandes (rastreados externamente no Obsidian Vault)
 */assets/__BASE_*.docx
+
+# Páginas renderizadas de PDFs de clientes (RG, procuração, comprovantes)
+# São DADOS PESSOAIS — NUNCA versionar
+_*_pages/
+*_pages/
+*_rg.png
+*_kit_pages/
+*_anaiza_pages/
+*_cicero_pages/
+*_george_kit_pages/
 
 # Skill com repo git próprio
 pericia-contrato-digital/

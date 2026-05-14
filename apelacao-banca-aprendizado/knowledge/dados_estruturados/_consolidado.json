@@ -1,0 +1,1051 @@
+[
+  {
+    "nome": "Apelação-AM-Improcedencia-contrato-FISICO-sem-pericia-julgado-como-cartão-Maués",
+    "total_paragrafos": 144,
+    "paragrafos_conteudo": 108,
+    "paragrafos_vazios": 36,
+    "folha_rosto_chars": 1566,
+    "secoes_titulos": [
+      {
+        "linha": 83,
+        "estilo": "2. Título",
+        "titulo": "DA TEMPESTIVIDADE"
+      },
+      {
+        "linha": 92,
+        "estilo": "2. Título",
+        "titulo": "DO PREPARO"
+      },
+      {
+        "linha": 101,
+        "estilo": "2. Título",
+        "titulo": "DAS RAZÕES E FUNDAMENTOS JURÍDICOS"
+      },
+      {
+        "linha": 104,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "JULGAMENTO DISSOCIADO DA CAUSA DE PEDIR:                                                              O caso não é de “RMC anulatória”, mas de inexistência"
+      },
+      {
+        "linha": 150,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "DO CERCEAMENTO DE DEFESA – pericia grafotécnica"
+      },
+      {
+        "linha": 192,
+        "estilo": "3.1 Subtítulo secundário",
+        "titulo": "Da utilização de robôs para falsificar assinaturas"
+      },
+      {
+        "linha": 214,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Do ônus da prova"
+      },
+      {
+        "linha": 239,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Inexistência do negócio — consequências jurídicas"
+      },
+      {
+        "linha": 251,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Da repetição do indébito"
+      },
+      {
+        "linha": 263,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos danos morais"
+      },
+      {
+        "linha": 324,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos consectários legais"
+      },
+      {
+        "linha": 339,
+        "estilo": "2. Título",
+        "titulo": "DOS PEDIDOS"
+      },
+      {
+        "linha": 342,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Diante do exposto, requer-se:"
+      }
+    ],
+    "n_secoes": 13,
+    "jurisprudencia_tjam": [
+      {
+        "numero": "0640479-92.2023.8.04.0001",
+        "relator": "Joana dos Santos Meirelles",
+        "camara": "Primeira Câmara Cível",
+        "data": "24/02/2025"
+      },
+      {
+        "numero": "0202858-92.2024.8.04.0001",
+        "relator": "Lafayette Carneiro Vieira Júnior",
+        "camara": "Terceira Câmara Cível",
+        "data": "17/12/2024"
+      },
+      {
+        "numero": "0721712-48.2022.8.04.0001",
+        "relator": "Onilza Abreu Gerth",
+        "camara": "Segunda Câmara Cível",
+        "data": "01/06/2004"
+      },
+      {
+        "numero": "0426340-22.2023.8.04.0001",
+        "relator": "Domingos Jorge Chalub Pereira",
+        "camara": "Terceira Câmara Cível",
+        "data": "27/01/2025"
+      },
+      {
+        "numero": "0619373-79.2020.8.04.0001",
+        "relator": "Délcio Luís Santos",
+        "camara": "Segunda Câmara Cível",
+        "data": "02/06/2023"
+      }
+    ],
+    "n_juris_tjam": 5,
+    "resps": [
+      {
+        "numero": "676.608/RS",
+        "relator": null
+      }
+    ],
+    "n_resps": 1,
+    "placeholders_xxx": [
+      "XXXXX",
+      "XXXXXX"
+    ],
+    "valores_rs": [
+      "10.000,00",
+      "15.000,00",
+      "203,14",
+      "628,83"
+    ],
+    "datas": [
+      "01/06/2004",
+      "02/06/2023",
+      "04/02/2025",
+      "12/03/2025",
+      "13/03/2025",
+      "17/12/2024",
+      "21/08/2025",
+      "24/02/2025",
+      "27/01/2025",
+      "29/08/2024",
+      "30/03/2021",
+      "30/08/2024",
+      "9 de fevereiro de 2026"
+    ],
+    "nomes_caixa_alta": [
+      "ABUSIVIDADE COMPROVADA",
+      "ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO",
+      "ALEGAÇÃO AUTORAL TEMA REPETITIVO",
+      "ALEGAÇÃO DE INEXISTÊNCIA DE NEGÓCIO JURÍDICO",
+      "ANALISE DA ASSINATURA FEITA NA RÉPLICA",
+      "APELAÇÃO CÍVEL",
+      "AUSÊNCIA DE PROVA IDÔNEA",
+      "AUTENTICIDADE DE ASSINATURA",
+      "AÇÃO DE OBRIGAÇÃO DE FAZER",
+      "BANCO APELANTE QUE NÃO SE DESINCUMBIU"
+    ],
+    "erros_modelo": [
+      {
+        "tipo": "plural_reus",
+        "match": "os Réus",
+        "contexto": "ata do primeiro desconto;  [§136] [List Paragraph] Condenar os Réus ao pagamento de indenização por danos morais, em patamar qu"
+      }
+    ],
+    "n_erros": 1
+  },
+  {
+    "nome": "Apelação-dano-moral-majoração-um-contrato-10-maués-NOVO",
+    "total_paragrafos": 126,
+    "paragrafos_conteudo": 103,
+    "paragrafos_vazios": 23,
+    "folha_rosto_chars": 1622,
+    "secoes_titulos": [
+      {
+        "linha": 83,
+        "estilo": "2. Título",
+        "titulo": "DA TEMPESTIVIDADE"
+      },
+      {
+        "linha": 92,
+        "estilo": "2. Título",
+        "titulo": "DA DISPENSA DE PREPARO"
+      },
+      {
+        "linha": 101,
+        "estilo": "2. Título",
+        "titulo": "DAS RAZÕES E FUNDAMENTOS JURÍDICOS"
+      },
+      {
+        "linha": 104,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "JULGAMENTO DISSOCIADO DA CAUSA DE PEDIR:                                                              O caso não é de “RMC anulatória”, mas de inexistência"
+      },
+      {
+        "linha": 171,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos danos morais – quantum indenizatório – majoração"
+      },
+      {
+        "linha": 277,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos consectários legais"
+      },
+      {
+        "linha": 317,
+        "estilo": "2. Título",
+        "titulo": "DOS PEDIDOS"
+      },
+      {
+        "linha": 320,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Diante do exposto, requer-se:"
+      }
+    ],
+    "n_secoes": 8,
+    "jurisprudencia_tjam": [
+      {
+        "numero": "0619373-79.2020.8.04.0001",
+        "relator": "Délcio Luís Santos",
+        "camara": "Segunda Câmara Cível",
+        "data": "02/06/2023"
+      }
+    ],
+    "n_juris_tjam": 1,
+    "resps": [],
+    "n_resps": 0,
+    "placeholders_xxx": [],
+    "valores_rs": [
+      "10.000,00",
+      "15.000,00",
+      "5.000,00",
+      "693,00"
+    ],
+    "datas": [
+      "02/06/2023",
+      "23/03/2026",
+      "24 de março de 2026",
+      "29/08/2024",
+      "30/08/2024"
+    ],
+    "nomes_caixa_alta": [
+      "ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO",
+      "ALEGAÇÃO AUTORAL TEMA REPETITIVO",
+      "APELAÇÃO CÍVEL",
+      "AUSÊNCIA DE PROVA IDÔNEA",
+      "AÇÃO DE OBRIGAÇÃO DE FAZER",
+      "BANCO APELANTE QUE NÃO SE DESINCUMBIU",
+      "BANCO BRADESCO",
+      "CLARICE BATISTA DA SILVA",
+      "CONTRATOS BANCÁRIOS",
+      "DA DISPENSA DE PREPARO"
+    ],
+    "erros_modelo": [],
+    "n_erros": 0
+  },
+  {
+    "nome": "Apelação-dano-moral-majoração-um-contrato-10-maués",
+    "total_paragrafos": 126,
+    "paragrafos_conteudo": 103,
+    "paragrafos_vazios": 23,
+    "folha_rosto_chars": 1617,
+    "secoes_titulos": [
+      {
+        "linha": 83,
+        "estilo": "2. Título",
+        "titulo": "DA TEMPESTIVIDADE"
+      },
+      {
+        "linha": 92,
+        "estilo": "2. Título",
+        "titulo": "DA DISPENSA DE PREPARO"
+      },
+      {
+        "linha": 101,
+        "estilo": "2. Título",
+        "titulo": "DAS RAZÕES E FUNDAMENTOS JURÍDICOS"
+      },
+      {
+        "linha": 104,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "JULGAMENTO DISSOCIADO DA CAUSA DE PEDIR:                                                              O caso não é de “RMC anulatória”, mas de inexistência"
+      },
+      {
+        "linha": 171,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos danos morais – quantum indenizatório – majoração"
+      },
+      {
+        "linha": 277,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos consectários legais"
+      },
+      {
+        "linha": 317,
+        "estilo": "2. Título",
+        "titulo": "DOS PEDIDOS"
+      },
+      {
+        "linha": 320,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Diante do exposto, requer-se:"
+      }
+    ],
+    "n_secoes": 8,
+    "jurisprudencia_tjam": [
+      {
+        "numero": "0619373-79.2020.8.04.0001",
+        "relator": "Délcio Luís Santos",
+        "camara": "Segunda Câmara Cível",
+        "data": "02/06/2023"
+      }
+    ],
+    "n_juris_tjam": 1,
+    "resps": [],
+    "n_resps": 0,
+    "placeholders_xxx": [],
+    "valores_rs": [
+      "10.000,00",
+      "15.000,00",
+      "5.000,00",
+      "693,00"
+    ],
+    "datas": [
+      "02/06/2023",
+      "23/03/2026",
+      "24 de março de 2026",
+      "29/08/2024",
+      "30/08/2024"
+    ],
+    "nomes_caixa_alta": [
+      "ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO",
+      "ALEGAÇÃO AUTORAL TEMA REPETITIVO",
+      "APELAÇÃO CÍVEL",
+      "AUSÊNCIA DE PROVA IDÔNEA",
+      "AÇÃO DE OBRIGAÇÃO DE FAZER",
+      "BANCO APELANTE QUE NÃO SE DESINCUMBIU",
+      "BANCO BRADESCO",
+      "CLARICE BATISTA DA SILVA",
+      "CONTRATOS BANCÁRIOS",
+      "DA DISPENSA DE PREPARO"
+    ],
+    "erros_modelo": [],
+    "n_erros": 0
+  },
+  {
+    "nome": "Apelação-Dano-moral-majoração-um-contrato-inferior-a-10-boa-vista-do-ramos",
+    "total_paragrafos": 99,
+    "paragrafos_conteudo": 74,
+    "paragrafos_vazios": 25,
+    "folha_rosto_chars": 1575,
+    "secoes_titulos": [
+      {
+        "linha": 85,
+        "estilo": "2. Título",
+        "titulo": "DA TEMPESTIVIDADE"
+      },
+      {
+        "linha": 94,
+        "estilo": "2. Título",
+        "titulo": "DA DISPENSA DE PREPARO"
+      },
+      {
+        "linha": 103,
+        "estilo": "2. Título",
+        "titulo": "DAS RAZÕES E FUNDAMENTOS JURÍDICOS"
+      },
+      {
+        "linha": 106,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos danos morais – quantum indenizatório – majoração"
+      },
+      {
+        "linha": 225,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos consectários legais"
+      },
+      {
+        "linha": 240,
+        "estilo": "2. Título",
+        "titulo": "DOS PEDIDOS"
+      },
+      {
+        "linha": 243,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Diante do exposto, requer-se:"
+      }
+    ],
+    "n_secoes": 7,
+    "jurisprudencia_tjam": [
+      {
+        "numero": "0619373-79.2020.8.04.0001",
+        "relator": "Délcio Luís Santos",
+        "camara": "Segunda Câmara Cível",
+        "data": "02/06/2023"
+      }
+    ],
+    "n_juris_tjam": 1,
+    "resps": [],
+    "n_resps": 0,
+    "placeholders_xxx": [
+      "XXXX",
+      "XXXXX",
+      "XXXXXX"
+    ],
+    "valores_rs": [
+      "1.000,00",
+      "10.000,00",
+      "15.000,00",
+      "831,52"
+    ],
+    "datas": [
+      "02/06/2023",
+      "12/11/2025",
+      "16 de fevereiro de 2026",
+      "29/08/2024",
+      "30/08/2024"
+    ],
+    "nomes_caixa_alta": [
+      "ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO",
+      "ALEGAÇÃO AUTORAL TEMA REPETITIVO",
+      "APELAÇÃO CÍVEL",
+      "AUSÊNCIA DE PROVA IDÔNEA",
+      "AÇÃO DE OBRIGAÇÃO DE FAZER",
+      "BANCO APELANTE QUE NÃO SE DESINCUMBIU",
+      "BANCO XXXX",
+      "CONTRATOS BANCÁRIOS",
+      "DA DISPENSA DE PREPARO",
+      "DA TEMPESTIVIDADE"
+    ],
+    "erros_modelo": [],
+    "n_erros": 0
+  },
+  {
+    "nome": "Apelação-Dano-moral-majoração-um-contrato-inferior-a-10-maués",
+    "total_paragrafos": 94,
+    "paragrafos_conteudo": 69,
+    "paragrafos_vazios": 25,
+    "folha_rosto_chars": 1545,
+    "secoes_titulos": [
+      {
+        "linha": 85,
+        "estilo": "2. Título",
+        "titulo": "DA TEMPESTIVIDADE"
+      },
+      {
+        "linha": 94,
+        "estilo": "2. Título",
+        "titulo": "DA DISPENSA DE PREPARO"
+      },
+      {
+        "linha": 103,
+        "estilo": "2. Título",
+        "titulo": "DAS RAZÕES E FUNDAMENTOS JURÍDICOS"
+      },
+      {
+        "linha": 106,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos danos morais – quantum indenizatório – majoração"
+      },
+      {
+        "linha": 210,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos consectários legais"
+      },
+      {
+        "linha": 225,
+        "estilo": "2. Título",
+        "titulo": "DOS PEDIDOS"
+      },
+      {
+        "linha": 228,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Diante do exposto, requer-se:"
+      }
+    ],
+    "n_secoes": 7,
+    "jurisprudencia_tjam": [
+      {
+        "numero": "0619373-79.2020.8.04.0001",
+        "relator": "Délcio Luís Santos",
+        "camara": "Segunda Câmara Cível",
+        "data": "02/06/2023"
+      }
+    ],
+    "n_juris_tjam": 1,
+    "resps": [
+      {
+        "numero": "1.120.971",
+        "relator": "Min. Sidnei Beneti"
+      }
+    ],
+    "n_resps": 1,
+    "placeholders_xxx": [
+      "XXXX",
+      "XXXXX",
+      "XXXXXX"
+    ],
+    "valores_rs": [
+      "10.000,00",
+      "15.000,00",
+      "5.000,00",
+      "870,36"
+    ],
+    "datas": [
+      "02/06/2023",
+      "11/02/2026",
+      "16 de fevereiro de 2026",
+      "28/02/2012",
+      "29/08/2024",
+      "30/08/2024"
+    ],
+    "nomes_caixa_alta": [
+      "ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO",
+      "ALEGAÇÃO AUTORAL TEMA REPETITIVO",
+      "APELAÇÃO CÍVEL",
+      "AUSÊNCIA DE PROVA IDÔNEA",
+      "AÇÃO DE OBRIGAÇÃO DE FAZER",
+      "BANCO APELANTE QUE NÃO SE DESINCUMBIU",
+      "CONTRATOS BANCÁRIOS",
+      "DA DISPENSA DE PREPARO",
+      "DA TEMPESTIVIDADE",
+      "DANO MORAL"
+    ],
+    "erros_modelo": [],
+    "n_erros": 0
+  },
+  {
+    "nome": "Apelação-Dano-moral-majoração-um-contrato-superior-a-10-boa-vista-do-ramos",
+    "total_paragrafos": 103,
+    "paragrafos_conteudo": 75,
+    "paragrafos_vazios": 28,
+    "folha_rosto_chars": 1581,
+    "secoes_titulos": [
+      {
+        "linha": 86,
+        "estilo": "2. Título",
+        "titulo": "DA TEMPESTIVIDADE"
+      },
+      {
+        "linha": 95,
+        "estilo": "2. Título",
+        "titulo": "DA DISPENSA DE PREPARO"
+      },
+      {
+        "linha": 104,
+        "estilo": "2. Título",
+        "titulo": "DAS RAZÕES E FUNDAMENTOS JURÍDICOS"
+      },
+      {
+        "linha": 107,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos danos morais – quantum indenizatório – majoração"
+      },
+      {
+        "linha": 230,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos consectários legais"
+      },
+      {
+        "linha": 245,
+        "estilo": "2. Título",
+        "titulo": "DOS PEDIDOS"
+      },
+      {
+        "linha": 248,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Diante do exposto, requer-se:"
+      }
+    ],
+    "n_secoes": 7,
+    "jurisprudencia_tjam": [
+      {
+        "numero": "0619373-79.2020.8.04.0001",
+        "relator": "Délcio Luís Santos",
+        "camara": "Segunda Câmara Cível",
+        "data": "02/06/2023"
+      }
+    ],
+    "n_juris_tjam": 1,
+    "resps": [],
+    "n_resps": 0,
+    "placeholders_xxx": [
+      "XXXX",
+      "XXXXXX",
+      "XXXXXXX",
+      "XXXXXXXX"
+    ],
+    "valores_rs": [
+      "1.000,00",
+      "10.000,00",
+      "144,97",
+      "15.000,00",
+      "684,65",
+      "787,99"
+    ],
+    "datas": [
+      "02/06/2023",
+      "11/11/2025",
+      "16 de fevereiro de 2026",
+      "29/08/2024",
+      "30/08/2024"
+    ],
+    "nomes_caixa_alta": [
+      "ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO",
+      "ALEGAÇÃO AUTORAL TEMA REPETITIVO",
+      "APELAÇÃO CÍVEL",
+      "AUSÊNCIA DE PROVA IDÔNEA",
+      "AÇÃO DE OBRIGAÇÃO DE FAZER",
+      "BANCO APELANTE QUE NÃO SE DESINCUMBIU",
+      "CONTRATOS BANCÁRIOS",
+      "DA DISPENSA DE PREPARO",
+      "DA TEMPESTIVIDADE",
+      "DANO MORAL"
+    ],
+    "erros_modelo": [],
+    "n_erros": 0
+  },
+  {
+    "nome": "Apelação-Dano-moral-majoração-um-contrato-superior-a-10-julgou-com-CARTÃO-maués",
+    "total_paragrafos": 116,
+    "paragrafos_conteudo": 94,
+    "paragrafos_vazios": 22,
+    "folha_rosto_chars": 1590,
+    "secoes_titulos": [
+      {
+        "linha": 83,
+        "estilo": "2. Título",
+        "titulo": "DA TEMPESTIVIDADE"
+      },
+      {
+        "linha": 92,
+        "estilo": "2. Título",
+        "titulo": "DA DISPENSA DE PREPARO"
+      },
+      {
+        "linha": 101,
+        "estilo": "2. Título",
+        "titulo": "DAS RAZÕES E FUNDAMENTOS JURÍDICOS"
+      },
+      {
+        "linha": 104,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "JULGAMENTO DISSOCIADO DA CAUSA DE PEDIR:                                                              O caso não é de “RMC anulatória”, mas de inexistência"
+      },
+      {
+        "linha": 171,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos danos morais – quantum indenizatório – majoração"
+      },
+      {
+        "linha": 280,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos consectários legais"
+      },
+      {
+        "linha": 295,
+        "estilo": "2. Título",
+        "titulo": "DOS PEDIDOS"
+      },
+      {
+        "linha": 298,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Diante do exposto, requer-se:"
+      }
+    ],
+    "n_secoes": 8,
+    "jurisprudencia_tjam": [
+      {
+        "numero": "0619373-79.2020.8.04.0001",
+        "relator": "Délcio Luís Santos",
+        "camara": "Segunda Câmara Cível",
+        "data": "02/06/2023"
+      }
+    ],
+    "n_juris_tjam": 1,
+    "resps": [],
+    "n_resps": 0,
+    "placeholders_xxx": [
+      "XXX",
+      "XXXXX",
+      "XXXXXX"
+    ],
+    "valores_rs": [
+      "10.000,00",
+      "15.000,00",
+      "385,00",
+      "5.000,00",
+      "762,51"
+    ],
+    "datas": [
+      "02/06/2023",
+      "11/02/2026",
+      "2 de março de 2026",
+      "29/08/2024",
+      "30/08/2024"
+    ],
+    "nomes_caixa_alta": [
+      "ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO",
+      "ALEGAÇÃO AUTORAL TEMA REPETITIVO",
+      "APELAÇÃO CÍVEL",
+      "AUSÊNCIA DE PROVA IDÔNEA",
+      "AÇÃO DE OBRIGAÇÃO DE FAZER",
+      "BANCO APELANTE QUE NÃO SE DESINCUMBIU",
+      "BANCO BRADESCO",
+      "BANCO XXX",
+      "CONTRATOS BANCÁRIOS",
+      "DA DISPENSA DE PREPARO"
+    ],
+    "erros_modelo": [],
+    "n_erros": 0
+  },
+  {
+    "nome": "Apelação-Improcedencia-digital-sem-pericia-boa-vista-do-ramos",
+    "total_paragrafos": 211,
+    "paragrafos_conteudo": 164,
+    "paragrafos_vazios": 47,
+    "folha_rosto_chars": 1566,
+    "secoes_titulos": [
+      {
+        "linha": 86,
+        "estilo": "2. Título",
+        "titulo": "DA TEMPESTIVIDADE"
+      },
+      {
+        "linha": 95,
+        "estilo": "2. Título",
+        "titulo": "DA DISPENSA DE PREPARO"
+      },
+      {
+        "linha": 104,
+        "estilo": "2. Título",
+        "titulo": "DAS RAZÕES E FUNDAMENTOS JURÍDICOS"
+      },
+      {
+        "linha": 107,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "DO CERCEAMENTO DE DEFESA – pericia digital"
+      },
+      {
+        "linha": 155,
+        "estilo": "3. Subtítulo",
+        "titulo": "Da geolocalização e endereço de IP"
+      },
+      {
+        "linha": 187,
+        "estilo": "3. Subtítulo",
+        "titulo": "Do telefone inserido no contrato apresentado pelo banco réu"
+      },
+      {
+        "linha": 201,
+        "estilo": "3. Subtítulo",
+        "titulo": "Das informações e etapas de Contratação Digital"
+      },
+      {
+        "linha": 347,
+        "estilo": "3.1 Subtítulo secundário",
+        "titulo": "Dos dados do originador"
+      },
+      {
+        "linha": 365,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Do ônus da prova"
+      },
+      {
+        "linha": 377,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Da equivocada conclusão quanto à ausência de impugnação e à falta de pedido administrativo"
+      },
+      {
+        "linha": 415,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Inexistência do negócio — consequências jurídicas"
+      },
+      {
+        "linha": 424,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Da repetição do indébito"
+      },
+      {
+        "linha": 436,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos danos morais"
+      },
+      {
+        "linha": 504,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos consectários legais"
+      },
+      {
+        "linha": 519,
+        "estilo": "2. Título",
+        "titulo": "DOS PEDIDOS"
+      },
+      {
+        "linha": 522,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Diante do exposto, requer-se:"
+      }
+    ],
+    "n_secoes": 16,
+    "jurisprudencia_tjam": [
+      {
+        "numero": "0640479-92.2023.8.04.0001",
+        "relator": "Joana dos Santos Meirelles",
+        "camara": "Primeira Câmara Cível",
+        "data": "24/02/2025"
+      },
+      {
+        "numero": "0202858-92.2024.8.04.0001",
+        "relator": "Lafayette Carneiro Vieira Júnior",
+        "camara": "Terceira Câmara Cível",
+        "data": "17/12/2024"
+      },
+      {
+        "numero": "0721712-48.2022.8.04.0001",
+        "relator": "Onilza Abreu Gerth",
+        "camara": "Segunda Câmara Cível",
+        "data": "01/06/2004"
+      },
+      {
+        "numero": "0426340-22.2023.8.04.0001",
+        "relator": "Domingos Jorge Chalub Pereira",
+        "camara": "Terceira Câmara Cível",
+        "data": "27/01/2025"
+      },
+      {
+        "numero": "0619373-79.2020.8.04.0001",
+        "relator": "Délcio Luís Santos",
+        "camara": "Segunda Câmara Cível",
+        "data": "02/06/2023"
+      }
+    ],
+    "n_juris_tjam": 5,
+    "resps": [
+      {
+        "numero": "676.608/RS",
+        "relator": null
+      }
+    ],
+    "n_resps": 1,
+    "placeholders_xxx": [
+      "XXX",
+      "XXXXX",
+      "XXXXXX",
+      "XXXXXXX"
+    ],
+    "valores_rs": [
+      "10.000,00",
+      "136,71",
+      "15.000,00",
+      "664,79"
+    ],
+    "datas": [
+      "01/06/2004",
+      "02/06/2023",
+      "04/02/2025",
+      "10 de fevereiro de 2026",
+      "11/11/2025",
+      "12/03/2025",
+      "13/03/2025",
+      "17/12/2024",
+      "24/02/2025",
+      "27/01/2025",
+      "29/08/2024",
+      "30/03/2021",
+      "30/08/2024"
+    ],
+    "nomes_caixa_alta": [
+      "ABUSIVIDADE COMPROVADA",
+      "ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO",
+      "ALEGAÇÃO AUTORAL TEMA REPETITIVO",
+      "ALEGAÇÃO DE INEXISTÊNCIA DE NEGÓCIO JURÍDICO",
+      "APELAÇÃO CÍVEL",
+      "AUSÊNCIA DE PROVA IDÔNEA",
+      "AUTENTICIDADE DE ASSINATURA",
+      "AÇÃO DE OBRIGAÇÃO DE FAZER",
+      "BANCO APELANTE QUE NÃO SE DESINCUMBIU",
+      "BANCO XXXXX"
+    ],
+    "erros_modelo": [
+      {
+        "tipo": "plural_reus",
+        "match": "os Réus",
+        "contexto": "ata do primeiro desconto;  [§203] [List Paragraph] Condenar os Réus ao pagamento de indenização por danos morais, em patamar qu"
+      }
+    ],
+    "n_erros": 1
+  },
+  {
+    "nome": "Apelação-Improcedencia-fisico-sem-pericia-boa-vista-do-ramos",
+    "total_paragrafos": 164,
+    "paragrafos_conteudo": 122,
+    "paragrafos_vazios": 42,
+    "folha_rosto_chars": 1563,
+    "secoes_titulos": [
+      {
+        "linha": 86,
+        "estilo": "2. Título",
+        "titulo": "DA TEMPESTIVIDADE"
+      },
+      {
+        "linha": 95,
+        "estilo": "2. Título",
+        "titulo": "DA DISPENSA DE PREPARO"
+      },
+      {
+        "linha": 104,
+        "estilo": "2. Título",
+        "titulo": "DAS RAZÕES E FUNDAMENTOS JURÍDICOS"
+      },
+      {
+        "linha": 107,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "DO CERCEAMENTO DE DEFESA – pericia grafotécnica"
+      },
+      {
+        "linha": 186,
+        "estilo": "3.1 Subtítulo secundário",
+        "titulo": "Da utilização de robôs para falsificar assinaturas"
+      },
+      {
+        "linha": 209,
+        "estilo": "3.1 Subtítulo secundário",
+        "titulo": "Dos dados do originador"
+      },
+      {
+        "linha": 233,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Do ônus da prova"
+      },
+      {
+        "linha": 245,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Da equivocada conclusão quanto à ausência de impugnação e à falta de pedido administrativo"
+      },
+      {
+        "linha": 283,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Inexistência do negócio — consequências jurídicas"
+      },
+      {
+        "linha": 292,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Da repetição do indébito"
+      },
+      {
+        "linha": 304,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos danos morais"
+      },
+      {
+        "linha": 372,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Dos consectários legais"
+      },
+      {
+        "linha": 387,
+        "estilo": "2. Título",
+        "titulo": "DOS PEDIDOS"
+      },
+      {
+        "linha": 390,
+        "estilo": "3.1 Subtítulo intermediário",
+        "titulo": "Diante do exposto, requer-se:"
+      }
+    ],
+    "n_secoes": 14,
+    "jurisprudencia_tjam": [
+      {
+        "numero": "0640479-92.2023.8.04.0001",
+        "relator": "Joana dos Santos Meirelles",
+        "camara": "Primeira Câmara Cível",
+        "data": "24/02/2025"
+      },
+      {
+        "numero": "0202858-92.2024.8.04.0001",
+        "relator": "Lafayette Carneiro Vieira Júnior",
+        "camara": "Terceira Câmara Cível",
+        "data": "17/12/2024"
+      },
+      {
+        "numero": "0721712-48.2022.8.04.0001",
+        "relator": "Onilza Abreu Gerth",
+        "camara": "Segunda Câmara Cível",
+        "data": "01/06/2004"
+      },
+      {
+        "numero": "0426340-22.2023.8.04.0001",
+        "relator": "Domingos Jorge Chalub Pereira",
+        "camara": "Terceira Câmara Cível",
+        "data": "27/01/2025"
+      },
+      {
+        "numero": "0619373-79.2020.8.04.0001",
+        "relator": "Délcio Luís Santos",
+        "camara": "Segunda Câmara Cível",
+        "data": "02/06/2023"
+      }
+    ],
+    "n_juris_tjam": 5,
+    "resps": [
+      {
+        "numero": "676.608/RS",
+        "relator": null
+      }
+    ],
+    "n_resps": 1,
+    "placeholders_xxx": [
+      "XXX",
+      "XXXXX",
+      "XXXXXX"
+    ],
+    "valores_rs": [
+      "10.000,00",
+      "136,71",
+      "15.000,00",
+      "664,79"
+    ],
+    "datas": [
+      "01/06/2004",
+      "02/06/2023",
+      "04/02/2025",
+      "10 de fevereiro de 2026",
+      "11/11/2025",
+      "12/03/2025",
+      "13/03/2025",
+      "17/12/2024",
+      "21/08/2025",
+      "24/02/2025",
+      "27/01/2025",
+      "29/08/2024",
+      "30/03/2021",
+      "30/08/2024"
+    ],
+    "nomes_caixa_alta": [
+      "ABUSIVIDADE COMPROVADA",
+      "ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO",
+      "ALEGAÇÃO AUTORAL TEMA REPETITIVO",
+      "ALEGAÇÃO DE INEXISTÊNCIA DE NEGÓCIO JURÍDICO",
+      "ANALISE DA RÉPLICA",
+      "APELAÇÃO CÍVEL",
+      "AUSÊNCIA DE PROVA IDÔNEA",
+      "AUTENTICIDADE DE ASSINATURA",
+      "AÇÃO DE OBRIGAÇÃO DE FAZER",
+      "BANCO APELANTE QUE NÃO SE DESINCUMBIU"
+    ],
+    "erros_modelo": [
+      {
+        "tipo": "plural_reus",
+        "match": "os Réus",
+        "contexto": "ata do primeiro desconto;  [§156] [List Paragraph] Condenar os Réus ao pagamento de indenização por danos morais, em patamar qu"
+      }
+    ],
+    "n_erros": 1
+  }
+]

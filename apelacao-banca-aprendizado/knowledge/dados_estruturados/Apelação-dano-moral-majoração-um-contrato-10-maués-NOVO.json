@@ -1,0 +1,89 @@
+{
+  "nome": "Apelação-dano-moral-majoração-um-contrato-10-maués-NOVO",
+  "total_paragrafos": 126,
+  "paragrafos_conteudo": 103,
+  "paragrafos_vazios": 23,
+  "folha_rosto_chars": 1622,
+  "secoes_titulos": [
+    {
+      "linha": 83,
+      "estilo": "2. Título",
+      "titulo": "DA TEMPESTIVIDADE"
+    },
+    {
+      "linha": 92,
+      "estilo": "2. Título",
+      "titulo": "DA DISPENSA DE PREPARO"
+    },
+    {
+      "linha": 101,
+      "estilo": "2. Título",
+      "titulo": "DAS RAZÕES E FUNDAMENTOS JURÍDICOS"
+    },
+    {
+      "linha": 104,
+      "estilo": "3.1 Subtítulo intermediário",
+      "titulo": "JULGAMENTO DISSOCIADO DA CAUSA DE PEDIR:                                                              O caso não é de “RMC anulatória”, mas de inexistência"
+    },
+    {
+      "linha": 171,
+      "estilo": "3.1 Subtítulo intermediário",
+      "titulo": "Dos danos morais – quantum indenizatório – majoração"
+    },
+    {
+      "linha": 277,
+      "estilo": "3.1 Subtítulo intermediário",
+      "titulo": "Dos consectários legais"
+    },
+    {
+      "linha": 317,
+      "estilo": "2. Título",
+      "titulo": "DOS PEDIDOS"
+    },
+    {
+      "linha": 320,
+      "estilo": "3.1 Subtítulo intermediário",
+      "titulo": "Diante do exposto, requer-se:"
+    }
+  ],
+  "n_secoes": 8,
+  "jurisprudencia_tjam": [
+    {
+      "numero": "0619373-79.2020.8.04.0001",
+      "relator": "Délcio Luís Santos",
+      "camara": "Segunda Câmara Cível",
+      "data": "02/06/2023"
+    }
+  ],
+  "n_juris_tjam": 1,
+  "resps": [],
+  "n_resps": 0,
+  "placeholders_xxx": [],
+  "valores_rs": [
+    "10.000,00",
+    "15.000,00",
+    "5.000,00",
+    "693,00"
+  ],
+  "datas": [
+    "02/06/2023",
+    "23/03/2026",
+    "24 de março de 2026",
+    "29/08/2024",
+    "30/08/2024"
+  ],
+  "nomes_caixa_alta": [
+    "ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO",
+    "ALEGAÇÃO AUTORAL TEMA REPETITIVO",
+    "APELAÇÃO CÍVEL",
+    "AUSÊNCIA DE PROVA IDÔNEA",
+    "AÇÃO DE OBRIGAÇÃO DE FAZER",
+    "BANCO APELANTE QUE NÃO SE DESINCUMBIU",
+    "BANCO BRADESCO",
+    "CLARICE BATISTA DA SILVA",
+    "CONTRATOS BANCÁRIOS",
+    "DA DISPENSA DE PREPARO"
+  ],
+  "erros_modelo": [],
+  "n_erros": 0
+}

@@ -1,0 +1,253 @@
+# Ficha técnica — Apelação - Dano moral majoração, um contrato, inferior a 10% (boa vista do ramos).docx
+
+**Tamanho:** 10,474,736 bytes  
+**Paragrafos (total / com texto):** 99 / 74  
+**Tabelas:** 0  
+**Imagens:** embed=0, header=1, footer=1  
+
+## Seções e layout
+
+### Seção 0
+
+- Página: 21.0 × 29.7 cm (PORTRAIT (0))
+- Margens: top=3.75 / bottom=2.5 / left=3.0 / right=3.0 cm
+- Cabeçalho (distância): None cm
+- Rodapé (distância): None cm
+
+## Estilos customizados (quick_style=True)
+
+- **List Paragraph** — fonte=None size=None bold=None cor=None
+- **1. Parágrafo** — fonte=Sitka Text size=None bold=None cor=None
+- **2. Título** — fonte=Segoe UI size=None bold=True cor=000000
+- **3. Subtítulo** — fonte=Segoe UI Semibold size=11.0 bold=None cor=B3824C
+- **4. Citação** — fonte=Sitka Text size=11.0 bold=None cor=None
+- **5. Lista alfabética** — fonte=Sitka Text size=None bold=None cor=None
+- **3.1 Subtítulo intermediário** — fonte=Segoe UI Semibold size=11.0 bold=None cor=B3824C
+- **Caption** — fonte=None size=9.0 bold=None cor=1F497D
+- **3.1 Subtítulo secundário** — fonte=Franklin Gothic Book size=11.0 bold=True cor=None
+- **Strong** — fonte=None size=None bold=True cor=None
+
+## Texto integral (parágrafos numerados com estilo)
+
+**[§1] [estilo: 1. Parágrafo]**  
+Ao Juízo da Vara Única da Comarca de Boa Vista do Ramos/AM processo XXXXXX
+
+**[§4] [estilo: 1. Parágrafo]**  
+XXXX, já qualificado, vem à presença de Vossa Excelência, por intermédio de seus procuradores constituídos, interpor a presente RECURSO DE APELAÇÃO, tendo em vista a existência de error in judicando na sentença proferida pelo Juízo. Requer, portanto, o recebimento do recurso, eis que tempestivo, em seus regulares efeitos, com posterior remessa à superior instância.
+
+**[§5] [estilo: 1. Parágrafo]**  
+	Destarte, requer respeitosamente a Vossa Excelência, o recebimento do presente Recurso de Apelação, com posterior intimação do recorrido para, querendo, contrarrazoar o recurso no prazo de 15 (quinze) e, após, determinada a sua remessa ao Tribunal de Justiça para apreciação e julgamento.
+
+**[§7] [estilo: 1. Parágrafo]**  
+Nestes termos, pede deferimento.
+
+**[§9] [estilo: 1. Parágrafo]**  
+Manaus/AM, 16 de fevereiro de 2026.
+
+**[§22] [estilo: Normal]**  
+Ao Tribunal de Justiça de Amazonas processo XXXXXX
+
+**[§23] [estilo: Normal]**  
+Apelante: XXXXX
+
+**[§24] [estilo: Normal]**  
+Apelado: BANCO XXXX S/A
+
+**[§25] [estilo: Normal]**  
+SÍNTESE FÁTICA
+
+**[§26] [estilo: Normal]**  
+Trata-se de ação declaratória de inexistência de relação jurídica cumulada com repetição de indébito e indenização por danos morais proposta pela ora Apelante em face da Apelada, em razão de descontos indevidos em seu benefício previdenciário, referentes a empréstimo consignado que alega jamais ter contratado ou solicitado.
+
+**[§27] [estilo: Normal]**  
+O Banco Apelado, apesar de alegar regularidade da contratação, não juntou qualquer contrato, nem apresentou comprovante idôneo de liberação de valores, limitando-se a afirmações genéricas quanto à suposta validade do negócio.
+
+**[§28] [estilo: Normal]**  
+Diante dessa ausência probatória, e considerando a impugnação expressa do Apelante quanto à autenticidade da suposta contratação, aplicam-se integralmente as diretrizes do Tema 1.061 do STJ, segundo as quais cabe ao banco comprovar a existência e autenticidade do contrato quando a parte nega a contratação.
+
+**[§29] [estilo: Normal]**  
+Diante desse contexto, o juízo reconheceu a inexistência da contratação, declarou a nulidade do contrato e a ilegalidade dos descontos, condenando o Banco à restituição dos valores indevidos, além de fixar indenização por danos morais em R$ 1.000,00.
+
+**[§30] [estilo: Normal]**  
+O pleito de indenização por danos morais, entretanto, foi fixado de forma desproporcional e abaixo do quantum necessário para a devida reparação dos danos causados. 
+
+**[§31] [estilo: Normal]**  
+É contra esta decisão que se insurge a Apelante, pelos fundamentos a seguir expostos.
+
+**[§32] [estilo: Normal]**  
+É a síntese.
+
+**[§35] [estilo: Normal]**  
+RAZÕES DA APELAÇÃO
+
+**[§36] [estilo: 2. Título]**  
+DA TEMPESTIVIDADE
+
+**[§37] [estilo: 1. Parágrafo]**  
+O presente Recurso de Apelação é tempestivo, haja vista que o prazo para apresentação é de 15 (quinze) dias, conforme art. 1.003, §5º, do Código de Processo Civil.
+
+**[§38] [estilo: 1. Parágrafo]**  
+Desta forma, conforme seq. 22, o prazo final é em 12/11/2025, sendo, portanto, tempestivo.
+
+**[§39] [estilo: 2. Título]**  
+DA DISPENSA DE PREPARO
+
+**[§40] [estilo: 1. Parágrafo]**  
+Ab initio, importa consignar que a parte autora é beneficiária do benefício da Justiça Gratuita, conforme a decisão do mov. 9.1, proferida pelo Juízo “a quo” que concedeu à parte autora. 
+
+**[§41] [estilo: 1. Parágrafo]**  
+Portanto, tem-se como dispensada a apresentação do preparo recursal.
+
+**[§42] [estilo: 2. Título]**  
+DAS RAZÕES E FUNDAMENTOS JURÍDICOS
+
+**[§43] [estilo: 3.1 Subtítulo intermediário]**  
+Dos danos morais – quantum indenizatório – majoração
+
+**[§44] [estilo: List Paragraph]**  
+ Tocante ao dano moral, a sentença de primeiro grau fundamentou que:
+
+**[§45] [estilo: List Paragraph]**  
+[...]
+
+**[§46] [estilo: List Paragraph]**  
+De lado outro, quanto aos danos morais, tenho que a falta de transparência e informação ao consumidor conduz à violação dos princípios basilares da relação consumerista e do dever de cooperação. Neste sentido, é causa suficiente a ensejar alterações em seu bem-estar ideal, razão pela qual cabe à instituição bancária a reparação pela nítida falha na prestação do serviço. 
+
+**[§47] [estilo: List Paragraph]**  
+À vista disso, a fixação do valor da condenação ao pagamento de danos morais, a ser proporcionada ao consumidor, repousa na compensação pelo dano e na injustiça de que foi vítima, inserindo-se como direito básico amparado no art. 6º, VI, do CDC, devendo seu arbitramento operar-se com moderação, proporcionalmente o grau de culpa, à gravidade da lesão e servindo também como medida educativa, obedecendo sempre aos princípios da proporcionalidade e razoabilidade. [...]
+
+**[§48] [estilo: List Paragraph]**  
+d. CONDENAR a parte requerida ao pagamento do valor de R$ 1.000,00 (mil reais), a título de indenização por danos morais [...] 
+
+**[§49] [estilo: List Paragraph]**  
+(grifou-se)
+
+**[§52] [estilo: List Paragraph]**  
+A parte autora, na época do início dos descontos, recebia mensalmente o valor líquido de apenas R$ 831,52, renda essa exclusivamente destinada à sua subsistência básica, como alimentação, medicamentos e despesas essenciais.
+
+**[§53] [estilo: List Paragraph]**  
+Logo, não há que se falar que o empréstimo indevido não interfira em seu padrão de vida, que viu sua fonte de renda esvair-se em um contrato que jamais solicitou. 
+
+**[§54] [estilo: List Paragraph]**  
+Ainda assim, teve valores descontados de forma reiterada e indevida de seu benefício previdenciário, em razão de contrato que jamais celebrou, nem autorizou, e cujo valor não foi creditado em sua conta bancária.
+
+**[§55] [estilo: List Paragraph]**  
+Veja, Excelência, qualquer valor descontado do benefício do Apelante é um golpe em seu orçamento apertado, pois, ante os parcos recursos, precisa de cada centavo do seu benefício para manter a sua subsistência e de sua família. 
+
+**[§56] [estilo: List Paragraph]**  
+Não bastasse, enquanto o Apelante sofre com os descontos indevidos, o banco réu aufere lucros altíssimos, dos quais os valores ultrapassam o dobro do valor supostamente contratado, explicamos. 
+
+**[§57] [estilo: List Paragraph]**  
+Nesse prisma, o desconto indevido em benefício de valor tão reduzido compromete de maneira relevante a qualidade de vida do segurado, pois interfere na garantia de atendimento a necessidades básicas, violando a dignidade humana e o princípio da proteção integral.
+
+**[§58] [estilo: List Paragraph]**  
+Ademais, tem-se perfectibilizado o nexo causal e a ilicitude no presente caso, Veja-se: 
+
+**[§59] [estilo: List Paragraph]**  
+Conduta: Efetivação de desconto sem anuência ou contratação válida;
+
+**[§60] [estilo: List Paragraph]**  
+Ilicitude: Falha na prestação do serviço, com cobrança indevida em benefício previdenciário;
+
+**[§61] [estilo: List Paragraph]**  
+Nexo de causalidade: O dano moral advém diretamente dos descontos indevidos, que reduziram a renda mensal da parte Apelante;
+
+**[§62] [estilo: List Paragraph]**  
+Dano: o desconto mensal no benefício, quando confrontado com a renda mínima de menos de um salário mínimo, acarreta repercussão concreta na subsistência do Apelante, provocando, portanto, abalo psicológico e emocional que extrapola a noção de mero dissabor.
+
+**[§64] [estilo: List Paragraph]**  
+Assim, requer-se o acolhimento de dano moral, haja vista que: (a) a remuneração recebida pela parte Apelante é irrisória, tornando o desconto relevante para a sua subsistência; (b) a situação peculiar do segurado previdenciário, que se encontra em condição de hipervulnerabilidade, agrava o prejuízo moral; (c) resta configurado o dano extrapatrimonial, pois há falha na prestação do serviço, em detrimento do consumidor, com consequente abalo psíquico pela redução injusta de seu sustento básico.
+
+**[§65] [estilo: List Paragraph]**  
+Em reforço, cumpre destacar que a orientação desta Egrégia Corte é firme no sentido de que, em hipóteses de fraude em empréstimo consignado com descontos incidentes sobre benefício previdenciário de natureza alimentar, o dano moral é presumido (in re ipsa), adotando-se, como parâmetro compensatório usual, o montante de pelo menos R$ 10.000,00, com restituição em dobro quando evidenciada a má-fé da instituição financeira. 
+
+**[§66] [estilo: List Paragraph]**  
+Vejamos o entendimento jurisprudencial do TJAM:
+
+**[§67] [estilo: 4. Citação]**  
+DIREITO DO CONSUMIDOR E PROCESSUAL CIVIL. RECURSOS DE APELAÇÃO. CONTRATOS BANCÁRIOS. EMPRÉSTIMO CONSIGNADO. NULIDADE CONTRATUAL. ÔNUS DA PROVA. RESTITUIÇÃO EM DOBRO. DANO MORAL. DESPROVIMENTO DOS RECURSOS. [...] No que se refere aos danos morais fixados na origem em R$ 10.000,00 (dez mil reais) em relação a cada instituição, entendo que a indenização no valor arbitrado atende aos parâmetros da razoabilidade e da proporcionalidade, tendo em vista as peculiaridades da presente controvérsia e os precedentes deste Tribunal em casos análogos. [...] 6. Recursos conhecidos e não provido. (Apelação Cí [...]
+
+**[§69] [estilo: 4. Citação]**  
+APELAÇÃO CÍVEL. DIREITO DO CONSUMIDOR E PROCESSUAL CIVIL. AÇÃO DE OBRIGAÇÃO DE FAZER C/C PEDIDO DE INDENIZAÇÃO POR DANOS MATERIAIS E MORAIS. ALEGAÇÃO AUTORAL DE NEGATIVA DE CONTRATAÇÃO DE CARTÃO DE CRÉDITO CONSIGNADO. FALSIFICAÇÃO DE ASSINATURA. SENTENÇA DE PROCEDÊNCIA. NULIDADE DO CONTRATO. MANUTENÇÃO. BANCO APELANTE QUE NÃO SE DESINCUMBIU DO ÔNUS DE DESCONSTITUIR A ALEGAÇÃO AUTORAL TEMA REPETITIVO N. 1061 DO STJ. AUSÊNCIA DE PROVA IDÔNEA. RESTITUIÇÃO EM DOBRO E DANOS MORAIS DEVIDOS. RECURSO CONHECIDO E NÃO PROVIDO. [...] 5. O montante de R$ 10.000,00 (dez mil reais) fixado a título de danos  [...]
+
+**[§71] [estilo: List Paragraph]**  
+O desconto mensal não se trata, pois, de um valor insignificante, mas sim de verba alimentar subtraída injustamente, com impacto direto em sua rotina e dignidade, especialmente diante de sua condição vulnerável.
+
+**[§72] [estilo: List Paragraph]**  
+Grave, ainda, é o fato de que a instituição financeira não comprovou a veracidade do negócio jurídico questionado, limitando-se a apresentar documentos unilaterais e não requerendo a produção de prova pericial, mesmo após impugnação expressa da autenticidade da assinatura digital, conforme reconhecido pelo próprio juízo sentenciante. Tal postura revela negligência processual e desprezo pela verdade dos fatos, que não pode ser chancelada pelo Poder Judiciário.
+
+**[§73] [estilo: List Paragraph]**  
+Outrossim, o caráter reiterado e institucionalizado da conduta do réu exige que a indenização cumpra, além da função compensatória, uma finalidade pedagógica e preventiva.
+
+**[§74] [estilo: List Paragraph]**  
+A ausência de condenação por danos morais, nesses casos, transmite a mensagem de que é juridicamente vantajoso violar o direito alheio, internalizando o risco da fraude como custo ordinário da atividade financeira.
+
+**[§75] [estilo: List Paragraph]**  
+A indenização por danos morais, portanto, não serve apenas para aliviar o sofrimento da vítima, mas para ensinar ao ofensor que a violação da dignidade humana não será tolerada. O Judiciário tem o dever de afirmar o Direito e proteger os vulneráveis, não podendo banalizar agressões sistemáticas sob o argumento de economicidade ou suposta ausência de sofrimento palpável.
+
+**[§76] [estilo: List Paragraph]**  
+Por fim, o quantum indenizatório deve observar os princípios da razoabilidade, proporcionalidade, função punitiva e pedagógica, de modo a não enriquecer indevidamente a parte autora, mas também não converter a sentença em incentivo à repetição do ilícito, como vem ocorrendo em larga escala no mercado de crédito consignado.
+
+**[§77] [estilo: List Paragraph]**  
+A reparação deve considerar o sofrimento e a angústia sofridos pelo autor, que teve de enfrentar um processo judicial para se defender de uma fraude cometida por terceiros e negligenciada pela instituição financeira.
+
+**[§78] [estilo: List Paragraph]**  
+No presente caso, considerando que o desconto indevido, a indenização por danos morais no valor de R$ 15.000,00 mostra-se adequada e proporcional, sendo apta a cumprir sua dupla finalidade: compensar o prejuízo suportado pela vítima e desestimular a reiteração da conduta ilícita pelo ofensor.
+
+**[§79] [estilo: List Paragraph]**  
+Tal valor, além de compensar os danos sofridos pela parte Apelante, servirá como um forte desestímulo para que o banco Apelado e outras instituições financeiras não persistam em práticas abusivas e fraudulentas. A aplicação de um valor adequado é necessária para que o ilícito não compense economicamente e para reforçar a proteção dos consumidores hipossuficientes.
+
+**[§80] [estilo: List Paragraph]**  
+Dessa forma, a respeito da fixação do valor reparatório do dano moral, deve a vítima receber uma soma que lhe compense a dor ou o sofrimento, buscando compensar a dor e prevenir a reincidência, não podendo ser pequena, pois, pode tornar-se inexpressível, razão pela qual ratificam-se os pedidos formulados na peça inicial e reitera-se o pedido de majoração dos danos morais arbitrados para fixação de compensação por danos morais no valor de R$ 15.000,00 (quinze mil reais).
+
+**[§81] [estilo: Normal]**  
+Da limitação da compensação aos danos materiais
+
+**[§82] [estilo: List Paragraph]**  
+Ainda que se admita a possibilidade de compensação de valores, tal medida deve restringir-se exclusivamente aos montantes apurados a título de danos materiais, conforme delimitado no próprio dispositivo da sentença, que condiciona a compensação aos valores “comprovadamente depositados na conta da autora”, a serem verificados em fase de liquidação.
+
+**[§83] [estilo: List Paragraph]**  
+Com efeito, a compensação encontra respaldo apenas na restituição de quantias de natureza patrimonial, isto é, na diferença entre o valor efetivamente liberado e aquele pago indevidamente pela parte autora, não podendo, de forma alguma, alcançar a verba de natureza extrapatrimonial.
+
+**[§84] [estilo: List Paragraph]**  
+O valor fixado a título de danos morais possui natureza autônoma, compensatória e punitiva, desvinculada da restituição de valores, razão pela qual não comporta compensação com qualquer quantia eventualmente liberada em favor da parte autora, sob pena de desvirtuar a finalidade da indenização e violar o disposto no art. 944 do Código Civil.
+
+**[§85] [estilo: List Paragraph]**  
+Destarte, requer-se que eventual compensação de valores observe estritamente os limites fixados na sentença e se restrinja aos danos materiais, afastando-se qualquer tentativa de dedução ou abatimento sobre a indenização moral arbitrada.
+
+**[§86] [estilo: 3.1 Subtítulo intermediário]**  
+Dos consectários legais
+
+**[§87] [estilo: List Paragraph]**  
+No que se refere aos consectários legais, cumpre assentar desde logo o re-gime aplicável, em consonância com a legislação vigente e a jurisprudência consolidada do Superior Tribunal de Justiça. 
+
+**[§88] [estilo: List Paragraph]**  
+Quanto aos danos morais, fixados em prestação única, os juros de mora devem incidir a partir do evento danoso, nos termos da Súmula 54 do STJ e do art. 398 do Código Civil, à taxa de 1% (um por cento) ao mês, conforme previsto no art. 406 do Código Civil c/c art. 161, §1º, do Código Tributário Nacional. A correção monetária, por sua vez, tem como termo inicial a data do arbitramento, segundo a Súmula 362 do STJ. O índice aplicável, até 29/08/2024, é o índice adotado pelo Tri-bunal, em regra o INPC; a partir de 30/08/2024, a sistemática foi alterada, passando a incidir á “taxa legal” resultante [...]
+
+**[§89] [estilo: List Paragraph]**  
+No tocante aos danos materiais, notadamente a repetição do indébito e o reembolso de valores pagos indevidamente, os juros de mora incidem a partir de cada pagamento irregular, à luz da interpretação dos arts. 397 e 398 do CC, igualmente à razão de 1% (um por cento) ao mês, conforme os mesmos dispositivos já referidos. A correção monetária, nessa hipótese, tem como termo inicial a data de cada desembolso ou efetivo prejuízo suportado, Súmula 43 do STJ. O índice aplicável é o do Tribunal (em geral o INPC) até 29/08/2024, sendo substituído, a partir de 30/08/2024, pela “taxa legal”, corresponden [...]
+
+**[§90] [estilo: List Paragraph]**  
+Assim, devem ser observados esses parâmetros, a fim de se adequar a condenação aos ditames legais e jurisprudenciais que regulam a matéria.
+
+**[§91] [estilo: 2. Título]**  
+DOS PEDIDOS
+
+**[§92] [estilo: 3.1 Subtítulo intermediário]**  
+Diante do exposto, requer-se:
+
+**[§93] [estilo: List Paragraph]**  
+O presente Recurso seja CONHECIDO e, do seu julgamento, seja totalmente PROVIDO para REFORMAR PARCIALMENTE a sentença proferida pelo Juízo a quo, para que seja majorada a indenização por danos morais para o valor de R$ 15.000,00 (quinze mil reais).
+
+**[§94] [estilo: List Paragraph]**  
+Que eventual compensação de valores seja limitada exclusivamente aos montantes apurados a título de danos materiais.
+
+**[§95] [estilo: List Paragraph]**  
+Por fim, requer-se a condenação do apelado ao pagamento de despesas processuais e sucumbenciais, bem como o pagamento de honorários recursais.
+
+**[§97] [estilo: Normal]**  
+Nestes termos, pede-se deferimento.
+
+**[§98] [estilo: Normal]**  
+Manaus/AM, 16 de fevereiro de 2026.
+

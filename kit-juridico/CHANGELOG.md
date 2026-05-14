@@ -2,31 +2,34 @@
 
 ## v2.2 — 2026-05-11 (atual)
 
-### Padronização de nomes de arquivos
+### Padronização de nomenclatura (paradigma 5 clientes Elizio)
 
-Aplicada após processamento de 5 clientes do Elizio (caso paradigma — 5 pastas com PDFs misturados detectados manualmente). Mudanças no naming dos PDFs gerados pelo pipeline:
+Mineração dos erros encontrados no batch de 5 clientes do captador Elizio
+(ADALTO, ALBERTO, ALDENICE, ANDRE, ALEX) produziu três classes de ajuste.
 
-- **Após número: PONTO (não hífen)**: `2.` em vez de `2-`. Inclui:
-  - `2. Procuração …`
-  - `3. RG e CPF.pdf`
-  - `4. Declaração de hipossuficiência.pdf`
-  - `5. Comprovante de residência.pdf`
-  - `6. Histórico de empréstimo.pdf`
-  - `7. Histórico de pagamento.pdf`
-- **Entre campos do nome do arquivo: TRAVESSÃO (`–`)** em vez de hífen ASCII (`-`).
-  - Antes: `2- Procuração - Banco BMG - Contrato 15076520.pdf`
-  - Depois: `2. Procuração – Banco BMG – Contrato 15076520.pdf`
-- **Subdocumentos por pessoa: separador `<espaço>-<espaço>` + nome completo** ao fim:
-  - `3.1 - RG e CPF do rogado - NOME COMPLETO.pdf`
-  - `3.2 - RG e CPF da testemunha 1 - NOME COMPLETO.pdf`
-  - `3.3 - RG e CPF da testemunha 2 - NOME COMPLETO.pdf`
-  - `5.1 - Declaração de domicílio - NOME DO DECLARANTE.pdf`
-  - `5.2 - RG do declarante terceiro - NOME.pdf`
+**Separadores fixados em três caracteres distintos:**
+- `.` (ponto) sempre depois do número de ordem: `2. `, `3. `, `3.1 `, `5.1 `
+- `–` (travessão / en-dash U+2013) entre campos da procuração: `2. Procuração – Banco – Contrato N.pdf`
+- `-` (hífen comum U+002D) entre descritor e nome próprio de subdocumento: `3.1 - RG e CPF do rogado - NOME COMPLETO.pdf`
 
-A função `_nome_doc_comum(tipo, nome_pessoa='')` agora aceita o nome opcional. Quando o caller não souber o nome (caso atual do pipeline), o nome é omitido — backward-compatible.
+Antes da v2.2 a skill usava hífen colado após o número (`2-`, `3-`, `3.1-`)
+e hífen entre campos da procuração. O Mac (paradigma 2026-05-11) consolidou
+o esquema atual e o pipeline.py já gera neste formato.
 
-### Próximos passos
-- Caller (`fase_f_montar_estrutura`) precisa receber os nomes do rogado/testemunhas e propagar para `_nome_doc_comum`. Hoje os nomes ficam genéricos quando o pipeline não tem essa info.
+**Renomeações semânticas:**
+- `7- Histórico de pagamento.pdf` → `7. Histórico de créditos.pdf`. Adere à terminologia INSS (HISCRE = Histórico de Crédito).
+- `5.1- Declaração de residência de terceiro.pdf` → `5.1 - Declaração de domicílio.pdf`. Adere à terminologia CC art. 70. Conteúdo é o mesmo (declaração assinada por terceiro confirmando residência).
+
+**Subdocumentos com NOME COMPLETO obrigatório:**
+- 3.1, 3.2, 3.3 (rogado, testemunha 1, testemunha 2) e 5.2 (RG do declarante terceiro) devem terminar com ` - NOME COMPLETO` extraído do RG/CNH.
+- O pipeline cria os arquivos com nome genérico (`3.1 - RG e CPF do rogado.pdf`); o agente renomeia após extrair o nome.
+
+**Avisos novos adicionados às references:**
+- `regras-imagens.md` §1.1 — armadilha CIN moderna: frente + verso são do MESMO titular; não confundir filiação no verso com CIN de outra pessoa (caso ADALTO/Francisca).
+- `regras-validacao.md` §6.1 — armadilha KIT compactado mal fatiado: conferir conteúdo página a página depois do fatiamento (caso ADALTO/ALBERTO/ALDENICE — contratos de honorários e RGs de testemunhas trocados nos PDFs numerados).
+
+**Skill irmã afetada:**
+- `notificacao-extrajudicial`: deixou de hardcodar endereço Joaçaba/SC + Arapiraca/AL. Passa a usar `skills/_common/escritorios_cadastro.py:montar_endereco_escritorio_completo(uf_acao)`. AM agora usa Maués; BA/ES Salvador; MG Uberlândia.
 
 ---
 

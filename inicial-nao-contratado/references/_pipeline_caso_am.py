@@ -95,7 +95,10 @@ def montar_dados_inicial_am(pasta_banco: str, autora: Dict, comarca: str,
                             procurador_chave: str = 'patrick',
                             representante_legal: Dict = None,
                             tipo_template: str = 'auto',
-                            numeros_contrato_explicitos: Optional[List[str]] = None) -> Dict:
+                            numeros_contrato_explicitos: Optional[List[str]] = None,
+                            permitir_contrato_virtual: bool = False,
+                            contrato_virtual_overrides: Optional[Dict] = None,
+                            banco_codigo_override: Optional[str] = None) -> Dict:
     """Monta o dicionário completo de dados para uma inicial AM.
 
     Args:
@@ -126,7 +129,11 @@ def montar_dados_inicial_am(pasta_banco: str, autora: Dict, comarca: str,
     nome_pasta = os.path.basename(pasta_banco).upper()
     candidato_banco = None
     BANCOS_KW = ['AGIBANK', 'C6', 'ITAU', 'ITAÚ', 'FACTA', 'PAN', 'BRADESCO',
-                 'DAYCOVAL', 'BMG', 'OLE', 'SANTANDER', 'SAFRA', 'MERCANTIL']
+                 'DAYCOVAL', 'BMG', 'OLE', 'SANTANDER', 'SAFRA', 'MERCANTIL',
+                 'INTER', 'INBURSA', 'PARANA', 'PARATI', 'SENFF', 'SICOOB',
+                 'SICRED', 'PICPAY', 'CETELEM', 'QI', 'CREFISA',
+                 'MASTER', 'NUBANK', 'CAPITAL CONSIGNADO', 'BNP', 'CIFRA',
+                 'DO BRASIL', 'BANRISUL']
     for kw in BANCOS_KW:
         if kw in nome_pasta:
             candidato_banco = kw
@@ -164,14 +171,40 @@ def montar_dados_inicial_am(pasta_banco: str, autora: Dict, comarca: str,
         'SANTANDER': ['SANTANDER'],
         'SAFRA': ['SAFRA'],
         'MERCANTIL': ['MERCANTIL'],
+        'DO BRASIL': ['DO BRASIL', 'BRASIL S/A', 'BRASIL S.A'],
+        'BANRISUL': ['BANRISUL'],
     }
     palavras_match = BANCO_MATCH.get(candidato_banco, [candidato_banco])
-    contratos_do_banco = [
-        c for c in hiscon['contratos']
-        if any(kw in (c.get('banco_nome') or '').upper() for kw in palavras_match)
-    ]
-    if not contratos_do_banco:
-        raise RuntimeError(f'Nenhum contrato do banco "{candidato_banco}" encontrado no HISCON')
+    # Match TOLERANTE A ESPAÇOS: pdfplumber às vezes quebra nomes no meio
+    # ('BANCO INBURS A SA' em vez de 'BANCO INBURSA SA'). Removemos espaços de
+    # ambos os lados antes de comparar para garantir match robusto.
+    # Caso paradigma: EULALIA / INBURSA 2026-05-13.
+    def _strip_spaces(s):
+        return re.sub(r'\s+', '', s or '').upper()
+    # OVERRIDE por código FEBRABAN (cadeia com bancos distintos na mesma pasta):
+    # quando o JSON da kit-juridico identifica contratos predecessores (QI SCD,
+    # Bradesco origem, etc.) dentro da pasta do banco final (INBURSA), filtramos
+    # pelo código FEBRABAN do contrato específico em vez do banco da pasta.
+    # Caso paradigma: EULALIA / cadeia INBURSA 2026-05-13.
+    if banco_codigo_override:
+        contratos_do_banco = [
+            c for c in hiscon['contratos']
+            if c.get('banco_codigo') == banco_codigo_override
+        ]
+        if not contratos_do_banco:
+            raise RuntimeError(
+                f'Nenhum contrato com código FEBRABAN {banco_codigo_override!r} '
+                f'encontrado no HISCON (override de banco do contrato).'
+            )
+    else:
+        contratos_do_banco = [
+            c for c in hiscon['contratos']
+            if any(_strip_spaces(kw) in _strip_spaces(c.get('banco_nome'))
+                   or _strip_spaces(kw) in _strip_spaces(c.get('banco_nome_raw'))
+                   for kw in palavras_match)
+        ]
+        if not contratos_do_banco:
+            raise RuntimeError(f'Nenhum contrato do banco "{candidato_banco}" encontrado no HISCON')
 
     # REGRA CRÍTICA (SKILL.md §9-quater): a procuração é a única fonte
     # autoritativa do que o cliente nos autorizou a impugnar.
@@ -199,10 +232,34 @@ def montar_dados_inicial_am(pasta_banco: str, autora: Dict, comarca: str,
     contratos_brutos = filtrar_contratos_por_numero(
         contratos_do_banco, nums_filtro, fuzzy_dist=1)
     if not contratos_brutos:
-        raise ProcuracaoSemFiltroError(
-            f'🚨 Nenhum contrato do HISCON casou com os números das procurações '
-            f'{nums_filtro} para o banco {candidato_banco}. CONFERIR.'
-        )
+        if permitir_contrato_virtual:
+            # Contrato consta na procuração mas NÃO está no HISCON.
+            # Regra do escritório (2026-05-13): NÃO abortar. Gerar inicial
+            # com valores ESTIMADOS (via contrato_virtual_overrides) e marcar
+            # pendência para juntar HISCON do período do empréstimo.
+            ov = contrato_virtual_overrides or {}
+            contratos_brutos = [{
+                'numero': n,
+                'banco_codigo': candidato_banco or '???',
+                'banco_nome': candidato_banco or '?',
+                'situacao': ov.get('situacao', 'Ativo (estimado — pendente HISCON)'),
+                'origem_averbacao': ov.get('origem_averbacao', 'Averbação nova (estimada)'),
+                'data_inclusao': ov.get('data_inclusao', '[A CONFIRMAR — pendente HISCON]'),
+                'competencia_inicio': ov.get('competencia_inicio', ''),
+                'competencia_fim': ov.get('competencia_fim', ''),
+                'qtd_parcelas': ov.get('qtd_parcelas', 84),
+                'valor_parcela': ov.get('valor_parcela', 0.0),
+                'valor_emprestado': ov.get('valor_emprestado', 0.0),
+                '_virtual': True,
+                '_pendencia_hiscon': True,
+            } for n in nums_filtro]
+        else:
+            raise ProcuracaoSemFiltroError(
+                f'🚨 Nenhum contrato do HISCON casou com os números das procurações '
+                f'{nums_filtro} para o banco {candidato_banco}. CONFERIR. '
+                f'Para gerar inicial mesmo assim com pendência HISCON, passar '
+                f'`permitir_contrato_virtual=True`.'
+            )
 
     contratos_fmt = [formatar_contrato_para_template(c) for c in contratos_brutos]
 

@@ -12,12 +12,17 @@ Regra:
     Toda peça menciona MATRIZ (Joaçaba/SC) + UNIDADE DE APOIO na UF onde a ação
     é protocolada. A unidade de apoio varia conforme a UF.
 
-Cobertura atual:
+Cobertura atual (endereço completo, pronto para uso em peça):
     AL / SE  → unidade de apoio em Arapiraca/AL
     AM       → unidade de apoio em Maués/AM
-    BA / ES  → unidade de apoio em Salvador/BA  (endereço a confirmar)
-    MG       → unidade de apoio em Uberlândia/MG  (endereço a confirmar)
-    SC       → sem unidade de apoio (peça assinada na própria matriz)
+
+Sem unidade de apoio cadastrada (peça sai com SÓ a matriz, sem qualquer
+placeholder visível tipo "[A CONFIRMAR]" — regra explícita do escritório,
+2026-05-11):
+    BA, ES, MG, SC, e qualquer outra UF não listada acima.
+
+Quando a unidade de Salvador/Uberlândia for confirmada, basta acrescentar
+a entrada respectiva em UNIDADES_DE_APOIO com endereço REAL e completo.
 
 Sincronizado com `procuradores.py::CIDADE_POR_UF`.
 """
@@ -45,6 +50,14 @@ ENDERECO_MATRIZ_STR = (
 
 # ============================================================
 # UNIDADES DE APOIO por UF (cidade onde o procurador está)
+#
+# REGRA: só entram aqui UFs com endereço COMPLETO e CONFIRMADO. UFs sem
+# entrada caem no fallback de "só matriz" — a peça NÃO pode sair com
+# placeholders tipo "[A CONFIRMAR]" visíveis ao banco/juízo.
+#
+# Pendentes de cadastro (quando confirmar, acrescentar entrada respectiva):
+#   BA / ES → unidade de Salvador (Gabriel cobre BA e ES)
+#   MG      → unidade de Uberlândia (Alexandre)
 # ============================================================
 UNIDADES_DE_APOIO = {
     'AL': {
@@ -75,36 +88,6 @@ UNIDADES_DE_APOIO = {
         'uf': 'AM',
         'cep': '69195-000',
     },
-    'BA': {
-        # BA/ES compartilham a unidade de Salvador (Gabriel cobre ambos)
-        'logradouro': '[A CONFIRMAR]',
-        'numero': '[A CONFIRMAR]',
-        'complemento': '',
-        'bairro': '[A CONFIRMAR]',
-        'cidade': 'Salvador',
-        'uf': 'BA',
-        'cep': '[A CONFIRMAR]',
-    },
-    'ES': {
-        'logradouro': '[A CONFIRMAR]',
-        'numero': '[A CONFIRMAR]',
-        'complemento': '',
-        'bairro': '[A CONFIRMAR]',
-        'cidade': 'Salvador',
-        'uf': 'BA',
-        'cep': '[A CONFIRMAR]',
-    },
-    'MG': {
-        'logradouro': '[A CONFIRMAR]',
-        'numero': '[A CONFIRMAR]',
-        'complemento': '',
-        'bairro': '[A CONFIRMAR]',
-        'cidade': 'Uberlândia',
-        'uf': 'MG',
-        'cep': '[A CONFIRMAR]',
-    },
-    # SC: sem unidade de apoio — peça é assinada na própria matriz.
-    'SC': None,
 }
 
 
@@ -121,11 +104,12 @@ def _formatar_endereco(d: dict) -> str:
 def montar_endereco_escritorio_completo(uf: str) -> str:
     """Retorna a string composta: matriz + 'e unidade de apoio em' + filial.
 
-    Quando a UF não tem unidade de apoio (caso SC ou UF desconhecida),
-    retorna só a matriz.
+    Quando a UF não tem unidade de apoio CONFIRMADA no cadastro
+    (BA, ES, MG, SC, ou qualquer UF não listada), retorna SÓ a matriz —
+    nunca placeholder visível tipo '[A CONFIRMAR]' na peça final.
 
     Args:
-        uf: sigla da UF onde a peça será protocolada (ex: 'AM', 'AL', 'BA')
+        uf: sigla da UF onde a peça será protocolada (ex: 'AM', 'AL').
 
     Returns:
         String pronta para o placeholder `{{ESCRITORIO_ENDERECO_COMPOSTO}}`.
@@ -136,12 +120,36 @@ def montar_endereco_escritorio_completo(uf: str) -> str:
 
         >>> montar_endereco_escritorio_completo('SC')
         'Rua Frei Rogério, 541, Centro, Joaçaba/SC, CEP 89600-000'
+
+        >>> montar_endereco_escritorio_completo('BA')   # endereço pendente
+        'Rua Frei Rogério, 541, Centro, Joaçaba/SC, CEP 89600-000'
     """
     uf = (uf or '').upper().strip()
     apoio = UNIDADES_DE_APOIO.get(uf)
     if not apoio:
         return ENDERECO_MATRIZ_STR
+    # Salvaguarda extra: se alguma entrada vier com placeholder visível
+    # (esquecido em manutenção), trata como ausente e cai pra só matriz.
+    if any(_eh_placeholder(apoio.get(k, '')) for k in
+           ('logradouro', 'numero', 'bairro', 'cidade', 'cep')):
+        return ENDERECO_MATRIZ_STR
     return f"{ENDERECO_MATRIZ_STR}, e unidade de apoio em {_formatar_endereco(apoio)}"
+
+
+def _eh_placeholder(valor: str) -> bool:
+    """True se o valor contém marcador a-confirmar (`[…]`, `?`, vazio).
+
+    Salvaguarda para garantir que peças nunca saiam com `[A CONFIRMAR]`
+    aparecendo na qualificação do advogado.
+    """
+    if not valor:
+        return False  # campo legitimamente vazio (ex.: 'complemento': '')
+    v = valor.strip().upper()
+    if v.startswith('[') and v.endswith(']'):
+        return True
+    if 'CONFIRMAR' in v or 'PENDENTE' in v or 'TODO' in v:
+        return True
+    return False
 
 
 def obter_endereco_matriz() -> str:

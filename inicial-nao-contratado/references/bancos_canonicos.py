@@ -409,6 +409,14 @@ BANCOS = {
             'endereco': 'Avenida Cândido de Abreu, nº 526, Edifício Centro Empresarial, 9º andar, Centro Cívico, Curitiba/PR, CEP 80.530-000',
         },
     },
+    'inter': {
+        'matriz': {
+            'nome': 'BANCO INTER S/A',
+            'descricao_pj': 'pessoa jurídica de direito privado',
+            'cnpj': '00.416.968/0001-01',
+            'endereco': 'Avenida Barbacena, nº 1.219, Santo Agostinho, Belo Horizonte/MG, CEP 30.190-131',
+        },
+    },
     'pan': {
         'matriz': {
             'nome': 'BANCO PAN S/A',
@@ -585,6 +593,11 @@ ALIASES = {
     'AGIBANK FINANCEIRA': 'agibank',
     'AGIBANK': 'agibank',
 
+    'BANCO INTER': 'inter',
+    'BANCO INTER S/A': 'inter',
+    'BANCO INTER SA': 'inter',
+    'INTER': 'inter',
+
     'BANCO PAN': 'pan',
     'PAN': 'pan',
 
@@ -624,6 +637,8 @@ ALIASES = {
 
     'BANCO DO BRASIL': 'bb',
     'BB': 'bb',
+    'DO BRASIL': 'bb',
+    'BANCO BB': 'bb',
 
     'BANCO MERCANTIL DO BRASIL': 'mercantil',
     'BANCO MERCANTIL': 'mercantil',
@@ -645,6 +660,18 @@ ALIASES = {
 
     'BANCO INBURSA': 'inbursa',
     'INBURSA': 'inbursa',
+
+    'QI SOCIEDADE DE CREDITO DIRETO': 'qi_scd',
+    'QI SOCIEDADE DE CRÉDITO DIRETO': 'qi_scd',
+    'QI SCD': 'qi_scd',
+    'QI': 'qi_scd',
+
+    'CETELEM': 'bgn_cetelem',
+    'BANCO CETELEM': 'bgn_cetelem',
+    'BANCO BGN': 'bgn_cetelem',
+    'BGN': 'bgn_cetelem',
+    'BGN/CETELEM': 'bgn_cetelem',
+    'BANCO BGN/CETELEM': 'bgn_cetelem',
 }
 
 
