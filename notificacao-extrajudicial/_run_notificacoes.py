@@ -220,18 +220,31 @@ def agrupar_contratos_por_banco_tese(contratos: list, path_relativo: str,
     partes = path_relativo.replace('/', '\\').split('\\')
     if not partes:
         return {}
-    # Se só 1 nível (cliente com 1 benefício), não filtra benefício
-    if len(partes) == 1:
-        beneficio = ''
-        pasta_banco = partes[0].strip()
-    else:
-        beneficio = partes[0].strip().upper()
-        pasta_banco = partes[1].strip()
+    # Formatos suportados:
+    #   1 nível: "BANCO X" (cliente sem benefício explícito)
+    #   2 níveis: "BENEFÍCIO/BANCO X" OU "TESE/BANCO X"
+    #   3 níveis: "BENEFÍCIO/TESE/BANCO X" (paradigma Guilherme 2026-05-14)
+    BENEFICIOS_KW = {'APOSENTADORIA', 'PENSÃO', 'PENSAO'}
+    TESES_KW = {'NÃO CONTRATADO', 'NAO CONTRATADO', 'RMC', 'RCC'}
+    # Banco é sempre o último segmento (começa com "BANCO ")
+    pasta_banco = partes[-1].strip()
+    # Benefício: primeiro segmento se for um dos benefícios conhecidos
+    beneficio = ''
+    if len(partes) >= 2:
+        p0 = partes[0].strip().upper()
+        if p0 in BENEFICIOS_KW:
+            beneficio = p0
     pasta_banco_norm = re.sub(r'\s+', '', pasta_banco.upper())
     # Tirar acentos para match com CHAVES_BANCO (que é ASCII)
     import unicodedata as _ud
     pasta_banco_norm = _ud.normalize('NFD', pasta_banco_norm).encode('ascii', 'ignore').decode('ascii')
-    is_rmc_rcc = 'RMC-RCC' in pasta_banco_norm or 'RMC/RCC' in pasta_banco_norm
+    beneficio = _ud.normalize('NFD', beneficio).encode('ascii', 'ignore').decode('ascii')
+    # Detectar tese: legacy (nome banco contém RMC-RCC) OU novo (segmento path = RMC/RCC).
+    segmentos_upper = [_ud.normalize('NFD', p.strip().upper()).encode('ascii', 'ignore').decode('ascii')
+                       for p in partes]
+    is_rmc = 'RMC' in segmentos_upper or 'RMC-RCC' in pasta_banco_norm
+    is_rcc = 'RCC' in segmentos_upper or 'RMC-RCC' in pasta_banco_norm
+    is_rmc_rcc = is_rmc or is_rcc
 
     chaves_pasta = [ch for ch in CHAVES_BANCO if ch in pasta_banco_norm]
     # Aliases: se a pasta tem "BANCODOBRASIL" ou "DOBRASIL", também aceita banco_chave='BB'
@@ -288,7 +301,18 @@ def agrupar_contratos_por_banco_tese(contratos: list, path_relativo: str,
             continue
         # Filtro tipo + decisão de tese
         tipo = (c.get('tipo') or '').upper()
-        if is_rmc_rcc:
+        if is_rmc and not is_rcc:
+            # Pasta dedicada RMC — só aceita tipo RMC
+            if tipo != 'RMC':
+                continue
+            tese_slug = 'rmc'
+        elif is_rcc and not is_rmc:
+            # Pasta dedicada RCC — só aceita tipo RCC
+            if tipo != 'RCC':
+                continue
+            tese_slug = 'rcc'
+        elif is_rmc_rcc:
+            # Pasta legacy RMC-RCC mista
             if tipo not in ('RMC', 'RCC'):
                 continue
             tese_slug = tipo.lower()
@@ -719,6 +743,26 @@ def processar_cliente(pasta_cliente: str, log: list):
 
     hoje_extenso = data_extenso()
 
+    # 3-pre. Agrupar entradas de pastas_acao com mesmo path_relativo (caso
+    # de banco com múltiplos contratos: o JSON tem 1 entrada por contrato,
+    # mas a notificação deve listar TODOS os contratos juntos em 1 só docx).
+    # Regra acrescentada 2026-05-14 (paradigma FERNANDO FACTA com 2 contratos).
+    from collections import defaultdict as _dd
+    _agg = _dd(lambda: {'tese': '', 'contratos_impugnar_ids': [],
+                         'contratos_impugnar_origem': '', 'path_relativo': ''})
+    for _pa in pastas_acao:
+        _p = _pa.get('path_relativo', '')
+        _a = _agg[_p]
+        _a['path_relativo'] = _p
+        _a['tese'] = _pa.get('tese', '') or _a['tese']
+        _a['contratos_impugnar_origem'] = (
+            _pa.get('contratos_impugnar_origem', '') or _a['contratos_impugnar_origem']
+        )
+        for _cid in (_pa.get('contratos_impugnar_ids') or []):
+            if _cid not in _a['contratos_impugnar_ids']:
+                _a['contratos_impugnar_ids'].append(_cid)
+    pastas_acao = list(_agg.values())
+
     # 3. Para cada pasta_acao, gerar notificação
     for pa in pastas_acao:
         path_rel = pa.get('path_relativo', '')
@@ -736,6 +780,11 @@ def processar_cliente(pasta_cliente: str, log: list):
         if not grupos:
             print(f'  [SKIP] {path_rel}: sem contratos correspondentes')
             continue
+
+        # Regra escritório (2026-05-14): se a pasta de ação tem só 1 banco,
+        # não criar subpasta de banco dentro de notificacao/ — gerar direto.
+        # Se tem múltiplos bancos (caso de cadeia), manter subpasta por banco.
+        bancos_distintos_na_pasta = len(set(b for (b, _t) in grupos.keys()))
 
         # Para cada (banco, tese) gera 1 notificação
         for (banco_chave, tese), contratos_pasta in grupos.items():
@@ -759,9 +808,12 @@ def processar_cliente(pasta_cliente: str, log: list):
 
             mapa = montar_mapa_placeholders(qual, banco_info, advogado, contratos_pasta, hoje_extenso, uf_acao)
 
-            # Subpasta dedicada por banco — contém DOCX + dossiê (OAB +
-            # procurações específicas + RG/CPF + HISCON/HISCRE).
-            output_dir = os.path.join(pasta_acao_abs, 'notificacao', banco_chave)
+            # Subpasta de banco SÓ quando há múltiplos bancos na pasta de ação
+            # (regra escritório 2026-05-14: evitar profundidade desnecessária).
+            if bancos_distintos_na_pasta > 1:
+                output_dir = os.path.join(pasta_acao_abs, 'notificacao', banco_chave)
+            else:
+                output_dir = os.path.join(pasta_acao_abs, 'notificacao')
             os.makedirs(output_dir, exist_ok=True)
             # Nome curto para evitar Windows path-260 em pastas profundas.
             # Versão longa antiga: 'Notificação Extrajudicial - {banco} - {tese}.docx'

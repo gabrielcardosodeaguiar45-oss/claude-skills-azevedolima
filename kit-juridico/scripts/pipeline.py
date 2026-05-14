@@ -56,7 +56,8 @@ SCRIPTS_DIR = Path(__file__).parent
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 import fitz  # noqa
-from pdf_utils import has_text_layer, count_pages, open_pdf as _open_pdf
+from pdf_utils import (has_text_layer, count_pages, open_pdf as _open_pdf,
+                       score_kit_assinado, escolher_kit_assinado)
 from proc_extractor import preparar_crops, crop_linha_contrato
 from hiscon_parser import parsear_hiscon
 from chain_detector import detectar_cadeias, agrupar_em_pastas_acao, _nome_pasta_banco
@@ -153,6 +154,29 @@ def fase_b_classificar_pdfs(pasta_cliente: str, inv: dict) -> dict:
             classificacao["imagens"].append(arq)
         else:
             classificacao["outros"].append(arq)
+
+    # Reconciliação de múltiplos KIT_ASSINADO — só o de maior score fica.
+    # Caso paradigma: Guilherme tinha KIT (Word) + Processo (CamScanner) na
+    # mesma pasta. Sem reconciliação, ambos viravam KIT_ASSINADO. Agora o
+    # de menor score é rebaixado a KIT_MODELO (intacto fisicamente).
+    candidatos_kit = [p for p in classificacao["pdfs"]
+                      if p.get("tipo_sugerido") == "KIT_ASSINADO"]
+    if len(candidatos_kit) > 1:
+        # Ordena por score (se disponível) desc, depois tamanho desc
+        candidatos_kit.sort(
+            key=lambda p: (p.get("score_kit", 0), p.get("tamanho_bytes", 0)),
+            reverse=True,
+        )
+        vencedor = candidatos_kit[0]
+        for outro in candidatos_kit[1:]:
+            outro["tipo_sugerido"] = "KIT_MODELO"
+            outro["motivo_rebaixamento"] = (
+                f"Rebaixado para KIT_MODELO porque outro PDF venceu como "
+                f"KIT_ASSINADO: {Path(vencedor['path_absoluto']).name} "
+                f"(score={vencedor.get('score_kit', '?')}). "
+                f"Este: score={outro.get('score_kit', '?')}."
+            )
+
     return classificacao
 
 
@@ -165,6 +189,27 @@ def _sugerir_tipo_pdf(nome_lower: str, path: str) -> dict:
         CONTRATO_HONORARIOS, KIT_ASSINADO, KIT_MODELO, TERMO_LGPD,
         DECLARACAO_RESIDENCIA_TERCEIRO, RG_TERCEIRO, OUTRO
     """
+    # Caso especial — PDFs candidatos a "kit do cliente" (nomes ambíguos
+    # como "KIT GUILHERME.pdf" ou "Processo Guilherme.pdf"). Aqui o nome
+    # NÃO é suficiente: o template em branco ("KIT ...") fica indistinguível
+    # do kit completo no nome. Recorremos a sinais físicos do PDF (producer,
+    # text-layer, imagens raster, tamanho) via score_kit_assinado.
+    # Caso paradigma: Guilherme 2026-05-14.
+    if 'kit' in nome_lower or nome_lower.startswith('processo'):
+        try:
+            score_info = score_kit_assinado(path)
+            if score_info['classificacao'] == 'ASSINADO':
+                return {"tipo": "KIT_ASSINADO", "confianca": 0.90,
+                        "score_kit": score_info['score'],
+                        "sinais_kit": score_info['sinais']}
+            elif score_info['classificacao'] == 'MODELO':
+                return {"tipo": "KIT_MODELO", "confianca": 0.90,
+                        "score_kit": score_info['score'],
+                        "sinais_kit": score_info['sinais']}
+            # AMBIGUO → continua para keywords normais
+        except Exception:
+            pass
+
     # Por nome
     keywords = [
         ("PROCURACAO", ["procura"]),
@@ -176,7 +221,7 @@ def _sugerir_tipo_pdf(nome_lower: str, path: str) -> dict:
         ("HISCRE", ["historico de pagamento", "histórico de pagamento", "hiscre", "historico de credito", "histórico de crédito"]),
         ("EXTRATO_BANCARIO", ["extrato bancario", "extrato bancário"]),
         ("CONTRATO_HONORARIOS", ["honorario", "honorário", "prestacao de servico", "prestação de serviço"]),
-        ("KIT_ASSINADO", ["kit", "assinad"]),
+        ("KIT_ASSINADO", ["assinad"]),  # "kit" sozinho NÃO é suficiente — ver bloco acima
         ("KIT_MODELO", ["modelo", "branco"]),
         ("TERMO_LGPD", ["lgpd", "consentimento", "atendimento"]),
         ("DECLARACAO_RESIDENCIA_TERCEIRO", ["declaracao de residencia", "declaração de residência"]),
@@ -246,6 +291,79 @@ def fase_d_parsear_extratos(paths_hiscon: list[str]) -> list[dict]:
         r = parsear_hiscon(p)
         resultados.append(r)
     return resultados
+
+
+def mapear_contratos_por_beneficio(extratos_parseados: list[dict]) -> dict:
+    """Mapeia cada contrato para o benefício (NB) ao qual pertence.
+
+    Quando o cliente tem 2+ benefícios INSS (ex.: aposentadoria + pensão),
+    cada HISCON é específico de um benefício. O mesmo número de contrato
+    aparece em UM e SÓ UM dos HISCONs — o que indica a quem o contrato
+    pertence. Esta função consolida essa informação em um dict para a
+    fase F decidir em qual pasta `<BENEFÍCIO>/...` cada contrato vai.
+
+    Args:
+        extratos_parseados: saída de `fase_d_parsear_extratos`
+
+    Returns:
+        {
+            'por_contrato': {numero_contrato: {'nb': str, 'pasta_beneficio': str,
+                                                'especie_nome': str}},
+            'beneficios': [{'nb': str, 'pasta_beneficio': str, 'especie_nome': str,
+                            'qtd_contratos': int}],
+            'multiplos_beneficios': bool,
+            'avisos': [str],  # contratos órfãos, ambíguos etc.
+        }
+
+    Caso paradigma: Guilherme 2026-05-14. Tem APOSENTADORIA (NB 138.604.869-8,
+    27 contratos) e PENSÃO (NB 192.327.516-7, 2 contratos). Cada contrato
+    impugnado é mapeado para o benefício correto antes de criar a estrutura
+    `<CLIENTE>/<BENEFÍCIO>/<TESE>/<BANCO>/`.
+    """
+    por_contrato = {}
+    beneficios = []
+    avisos = []
+
+    for ext in extratos_parseados:
+        if ext.get('is_ocr_required'):
+            continue
+        benef = ext.get('beneficio', {}) or {}
+        nb = benef.get('numero_beneficio') or benef.get('nb') or ''
+        pasta_benef = benef.get('pasta_beneficio') or ''
+        especie = benef.get('especie_nome') or benef.get('beneficio') or ''
+        contratos_aqui = ext.get('contratos', [])
+        beneficios.append({
+            'nb': nb,
+            'pasta_beneficio': pasta_benef,
+            'especie_nome': especie,
+            'qtd_contratos': len(contratos_aqui),
+        })
+        for c in contratos_aqui:
+            num = (c.get('numero') or c.get('contrato') or '').strip()
+            if not num:
+                continue
+            if num in por_contrato:
+                # Mesmo contrato em 2 HISCONs — incomum mas possível em
+                # portabilidades cross-benefício. Manter o primeiro e avisar.
+                avisos.append(
+                    f"Contrato {num} aparece em 2 benefícios "
+                    f"({por_contrato[num]['nb']} e {nb}) — manter primeiro"
+                )
+                continue
+            por_contrato[num] = {
+                'nb': nb,
+                'pasta_beneficio': pasta_benef,
+                'especie_nome': especie,
+            }
+
+    multiplos = len(beneficios) > 1
+
+    return {
+        'por_contrato': por_contrato,
+        'beneficios': beneficios,
+        'multiplos_beneficios': multiplos,
+        'avisos': avisos,
+    }
 
 
 # =========================================================================

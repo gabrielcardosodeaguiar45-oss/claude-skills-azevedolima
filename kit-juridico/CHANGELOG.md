@@ -1,6 +1,84 @@
 # Changelog — kit-juridico
 
-## v2.2 — 2026-05-11 (atual)
+## v2.4 — 2026-05-14 (tarde)
+
+### Estrutura por benefício + tese (paradigma Guilherme — múltiplos NBs)
+
+Cliente com 2+ benefícios INSS (aposentadoria + pensão) ganha estrutura de **3 níveis**:
+
+```
+<CLIENTE>/<BENEFÍCIO>/<TESE>/<BANCO>/[Contrato XXX/]
+```
+
+Antes (v2.3): `<CLIENTE>/<BENEFÍCIO>/<BANCO>/` — sem nível de tese.
+Agora: tese (`Não contratado / RMC / RCC / Bradesco`) é nível intermediário entre benefício e banco.
+
+Regras associadas:
+- Cada contrato pertence a UM benefício, mapeado pelo HISCON respectivo.
+- `_estado_cliente.json`: `contratos[i].beneficio_pasta` deve ser `APOSENTADORIA` ou `PENSAO` (sem til); `pastas_acao[i].path_relativo` no formato `BENEFÍCIO/TESE/BANCO`.
+- **HISCON por benefício**: em cada pasta-banco, manter apenas o HISCON do benefício respectivo (não duplicar aposentadoria+pensão).
+- HISCRE: como vem único do INSS cobrindo ambos NBs, replicar nas duas árvores.
+- Colapso de `Contrato XXX/` só quando banco tem 2+ contratos no mesmo benefício; com 1 só contrato, docs vão direto na pasta-banco.
+
+Cliente com 1 só benefício mantém estrutura simplificada `<CLIENTE>/<TESE>/<BANCO>/`.
+
+### Validação do número de contrato (não confundir com RG)
+
+`pipeline.py` agora documenta que o número que vai como `contrato` no JSON precisa ser EXTRAÍDO LITERALMENTE da procuração assinada — nunca presumido pelo RG, CPF, NB ou identificador interno do banco.
+
+Caso paradigma Guilherme: kit-juridico antigo gravou `1897431-7` (que era o RG) como contrato RMC PAN. Procuração assinada do contrato real era `0229014603105`. Inicial precisou ser regenerada após auditoria.
+
+Heurísticas que **não** devem ser fonte do número de contrato:
+- RG do cliente (XXXXXXX-X)
+- CPF do cliente
+- NB do benefício (XXX.XXX.XXX-X)
+- Identificadores internos sem o rótulo "Contrato"
+
+### Skill `notificacao-extrajudicial` adaptada para 3 níveis
+
+Patches em `_run_notificacoes.py:agrupar_contratos_por_banco_tese`:
+- Detecta benefício pelo primeiro segmento do path (caso seja `APOSENTADORIA / PENSÃO`).
+- Banco é sempre o último segmento (não mais o segundo).
+- Detecta tese RMC/RCC pelo segmento intermediário do path, não só pelo nome do banco (que antes era `BANCO X - RMC-RCC`).
+- Normaliza acentos para comparar `PENSÃO` com `PENSAO`.
+
+## v2.3 — 2026-05-14
+
+### Distinção KIT em branco × Processo assinado por sinais físicos
+
+Paradigma: Guilherme de Oliveira Lacerda. A pasta `0. Kit/` tinha **dois**
+PDFs candidatos a "kit do cliente":
+
+- `KIT GUILHERME DE OLIVEIRA LACERDA.pdf` — template em branco gerado em
+  Word, sem assinatura (0.33 MB, 14 págs, producer `Microsoft® Word 2016`,
+  text-layer abundante, zero imagens raster).
+- `Processo Guilherme de Oliveira Lacerda.pdf` — kit COMPLETO assinado e
+  escaneado via CamScanner (12.69 MB, 22 págs, producer
+  `intsig.com pdf producer`, text-layer vazio, 6 imagens raster).
+
+A heurística antiga (`["kit", "assinad"]`) classificava o template em
+branco como `KIT_ASSINADO` só porque o nome continha "kit" — gerando kit
+errado em todas as pastas-banco do cliente.
+
+**Solução:** novo helper `score_kit_assinado(path)` em `pdf_utils.py` que
+calcula score -100..+100 por sinais físicos (producer/creator de scanner
+vs editor, text-layer, imagens raster, tamanho, nome). Score ≥50 →
+ASSINADO; ≤-30 → MODELO; entre → AMBIGUO.
+
+Integrado em `_sugerir_tipo_pdf`: para PDFs com "kit" ou "processo" no
+nome, consulta `score_kit_assinado` antes do match por keyword. E em
+`fase_b_classificar_pdfs`: quando há múltiplos `KIT_ASSINADO` na mesma
+pasta, o de menor score é REBAIXADO a `KIT_MODELO` (intacto fisicamente,
+apenas não usado como fonte).
+
+Validação Guilherme:
+- KIT em branco → score `-100`, classificação `MODELO`.
+- Processo escaneado → score `+100`, classificação `ASSINADO`.
+
+Nenhum arquivo é movido ou excluído. O PDF rebaixado permanece em
+`0. Kit/`, apenas sai do fluxo de extração.
+
+## v2.2 — 2026-05-11
 
 ### Padronização de nomenclatura (paradigma 5 clientes Elizio)
 

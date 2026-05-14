@@ -60,19 +60,55 @@ pip install pymupdf python-docx Pillow img2pdf openpyxl opencv-python --break-sy
 
 > **Separadores (v2.2):** ponto após o número (`2. `, `3. `), travessão `–` entre campos da procuração (Banco – Contrato), hífen comum `-` entre descritor e nome de subdocumento (`3.1 - RG e CPF do rogado - NOME COMPLETO.pdf`). Regras completas em [`references/regras-nomenclatura.md`](references/regras-nomenclatura.md).
 
-### Cliente com DOIS ou mais benefícios INSS
+### Cliente com DOIS ou mais benefícios INSS (v2.4, paradigma Guilherme 2026-05-14)
+
+Estrutura `<CLIENTE>/<BENEFÍCIO>/<TESE>/<BANCO>/[Contrato XXX/]`:
 
 ```
 [Cliente]/
 ├── 0. Kit/
-├── PENSÃO/                              (nível benefício adicional)
-│   ├── BANCO ITAÚ CONSIGNADO/
-│   ├── BANCO C6 CONSIGNADO/
-│   └── CAIXA ECONÔMICA FEDERAL - RMC-RCC/
-├── APOSENTADORIA/
-│   ├── BANCO ITAÚ CONSIGNADO/
-│   └── BANCO BMG - RMC-RCC/
-└── Pendências.xlsx
+├── APOSENTADORIA/                       (NB principal — maiúsculas)
+│   ├── Não contratado/
+│   │   ├── BANCO BRADESCO/              (1 contrato → docs direto, sem subpasta)
+│   │   │   ├── 2. Procuração – Bradesco – Contrato N.pdf
+│   │   │   ├── 3. RG e CPF.pdf
+│   │   │   ├── 4. Declaração de hipossuficiência.pdf
+│   │   │   ├── 5. Comprovante de residência.pdf
+│   │   │   ├── 6. Histórico de empréstimo - Extrato de Empréstimo - Aposentadoria.pdf
+│   │   │   ├── 7. Histórico de créditos.pdf
+│   │   │   └── notificacao/
+│   │   └── BANCO DO BRASIL/             (3 contratos → subpastas Contrato XXX/)
+│   │       ├── Contrato 114180212/
+│   │       ├── Contrato 159730415/
+│   │       ├── Contrato 185401944/
+│   │       └── notificacao/
+│   ├── RMC/BANCO PAN/                   (1 contrato → docs direto)
+│   └── RCC/BANCO PAN/
+└── PENSÃO/                              (segundo NB)
+    └── Não contratado/
+        ├── BANCO DO BRASIL/             (185402234)
+        └── BANCO ITAU/
+```
+
+**Regras críticas para múltiplos benefícios:**
+
+1. Cada contrato pertence a UM benefício, identificado pelo HISCON respectivo. Em `_estado_cliente.json`, o campo `contratos[i].beneficio_pasta` deve ser `APOSENTADORIA` ou `PENSAO` (sem til, para alinhar com o filtro da skill `notificacao-extrajudicial`).
+2. **HISCON por benefício**: dentro de cada pasta-banco, deixe SÓ o HISCON do benefício correspondente (não duplicar os dois). Em `APOSENTADORIA/.../BANCO X/` → só `6. Histórico de empréstimo - Extrato de Empréstimo - Aposentadoria.pdf`.
+3. HISCRE vem único do INSS cobrindo ambos os NBs — replicar nas duas árvores.
+4. `pastas_acao[i].path_relativo` no formato `BENEFÍCIO/TESE/BANCO` (3 níveis).
+5. Colapso de `Contrato XXX/`: aplicar SÓ se banco tem 2+ contratos no mesmo benefício; com 1 contrato, deixar docs direto na pasta do banco.
+6. Pasta `notificacao/` SEM subpasta de banco interna quando há 1 só banco em cada pasta-de-ação (regra escritório 2026-05-14).
+
+### Cliente com UM benefício INSS (formato simplificado)
+
+Quando há apenas um benefício, omitir o nível BENEFÍCIO (estrutura plana TESE/BANCO):
+
+```
+[Cliente]/
+├── 0. Kit/
+├── Não contratado/BANCO X/
+├── RMC/BANCO X/
+└── RCC/BANCO X/
 ```
 
 ### Cliente com cadeia inter-banco (portabilidade)
@@ -122,7 +158,47 @@ Aplique a regra de assinatura (física ou digital). Detalhes em `references/regr
 - Documentos Word `.doc/.docx` → quase sempre são modelos editáveis → vão para `0. Kit/`.
 - KIT compactado em PDF assinado → fonte da Fase 5 (separação por documento).
 
-Para verificar assinatura:
+**Distinção KIT em branco × Processo escaneado (v2.3, paradigma Guilherme 2026-05-14):**
+
+Quando há 2+ PDFs candidatos a "kit do cliente" em `0. Kit/` (típico: `KIT <NOME>.pdf` gerado em Word para impressão E `Processo <NOME>.pdf` escaneado com tudo assinado), USE `scripts/pdf_utils.py:score_kit_assinado(path)` para decidir qual é a fonte autoritativa:
+
+```python
+from scripts.pdf_utils import score_kit_assinado, escolher_kit_assinado
+
+# Cada candidato recebe score -100..+100
+info = score_kit_assinado(path)
+# info['classificacao']: 'ASSINADO' | 'MODELO' | 'AMBIGUO'
+
+# Ou: passar lista de candidatos e receber o vencedor
+resultado = escolher_kit_assinado([kit_em_branco_path, processo_path])
+# resultado['escolhido'] = caminho do kit assinado
+# resultado['descartados'] = outros (intactos, só não usados como fonte)
+```
+
+Sinais que indicam **kit ASSINADO**:
+- `producer` em `{intsig.com pdf producer, Adobe Scan, CamScanner, ScannerPro, Office Lens}` (apps de scanner)
+- Text-layer vazio ou < 100 chars (PDF imagem puro)
+- ≥ 1 imagem raster na primeira página
+- Tamanho > 3 MB
+- Nome começa com "Processo"
+
+Sinais que indicam **kit MODELO** (em branco para o cliente assinar):
+- `producer` em `{Microsoft® Word, LibreOffice, OpenOffice, WPS Writer}`
+- Text-layer abundante (> 500 chars) + zero imagens raster
+- Tamanho < 1 MB
+- Nome começa só com "KIT" sem "assinado"/"completo"
+
+Em `pipeline.py:_sugerir_tipo_pdf`, qualquer PDF com "kit" ou "processo" no nome passa por essa heurística antes do match por keyword. Em `fase_b_classificar_pdfs`, quando há múltiplos `KIT_ASSINADO` na mesma pasta, o de menor score é REBAIXADO a `KIT_MODELO` (intacto fisicamente, apenas não é fonte de extração).
+
+**Sub-documentos a extrair do Processo escaneado** (paradigma Guilherme):
+- Procurações específicas por banco/contrato (uma por página)
+- Declaração de hipossuficiência (uma única, replicada nas pastas-banco)
+- Declaração LGPD / consentimento (única)
+- RG/CPF do cliente, da rogada (se a rogo) e das testemunhas
+
+NUNCA pegar essas peças do KIT em branco — sairão sem assinatura e atrapalham o protocolo.
+
+Para verificar assinatura visual quando o score for ambíguo:
 1. Renderize cada página em imagem (`scripts/pdf_utils.py:render_page`).
 2. Use Read tool para análise visual procurando: traços manuscritos, rubricas, impressão digital, selos de certificado digital (ICP-Brasil, DocuSign, ClickSign, ZapSign, D4Sign, Adobe Sign).
 3. Se não tiver nenhum tipo de assinatura → modelo → MOVER para `0. Kit/`.
@@ -138,6 +214,20 @@ A skill cobre múltiplos tipos:
 - Bradesco — Tarifas, Mora, Mora+Encargo, Aplic.Invest, PG ELETRON, Título de Capitalização
 
 A classificação parte SEMPRE da procuração — o documento-mestre. Detalhes em `references/regras-validacao.md` (seções 7 e 8).
+
+**Validação do número do contrato (v2.4, paradigma Guilherme 2026-05-14):**
+
+O número que vai como contrato no JSON precisa ser EXTRAÍDO DA PROCURAÇÃO ASSINADA específica, NUNCA presumido pelo RG, CPF ou outros identificadores. O kit-juridico antigo às vezes confundia o RG do cliente com número de contrato (caso paradigma: Guilherme PAN RMC ficou como "1897431-7" no JSON, que era o RG do cliente — o número real era "0229014603105"). Antes de gravar `contratos[i].contrato` no JSON:
+
+1. Conferir que o número aparece literalmente na procuração específica.
+2. Validar cruzando com HISCON ou HISCRE quando aplicável (cartões RMC/RCC podem não aparecer no HISCON tradicional, mas a procuração é fonte autoritativa).
+3. Em caso de ambiguidade, marcar `contratos_impugnar_origem = "sugestao_automatica"` para forçar revisão humana antes de gerar inicial.
+
+Heurísticas que NÃO devem ser fonte primária do número de contrato:
+- RG do cliente (formato XXXXXXX-X)
+- CPF do cliente
+- NB do benefício (formato XXX.XXX.XXX-X)
+- Identificadores internos do banco que aparecem em telas/extratos sem o rótulo "Contrato"
 
 ### Fase 4: Processamento de Imagens
 

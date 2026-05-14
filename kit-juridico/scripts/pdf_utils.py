@@ -100,6 +100,176 @@ def has_text_layer(input_path: str, threshold: int = 50) -> bool:
     return False
 
 
+def score_kit_assinado(input_path: str) -> dict:
+    """Calcula score 0-100 de probabilidade de ser KIT ASSINADO (escaneado
+    via app de scanner) vs KIT MODELO (template em branco gerado em editor).
+
+    Sinais positivos (kit assinado):
+      - producer/creator de app de scanner (CamScanner, Adobe Scan, etc.)
+      - text-layer ausente ou muito pequeno
+      - imagens raster presentes na primeira página
+      - tamanho > 3 MB
+      - nome do arquivo começa com "processo"
+
+    Sinais negativos (kit modelo/template em branco):
+      - producer/creator de editor (Word, LibreOffice, OpenOffice)
+      - text-layer abundante + zero imagens raster
+      - tamanho < 1 MB
+      - nome começa só com "KIT" sem indicador de assinatura
+
+    Caso paradigma: Guilherme de Oliveira Lacerda (2026-05-14) — havia
+    "KIT GUILHERME DE OLIVEIRA LACERDA.pdf" (Word, 0.33MB, text-layer)
+    e "Processo Guilherme de Oliveira Lacerda.pdf" (CamScanner, 12.69MB,
+    escaneado). A skill estava pegando o KIT em branco em vez do Processo.
+
+    Retorna:
+      {
+        'score': int (-100 a 100; >=50 = ASSINADO, <=-30 = MODELO, entre = AMBIGUO),
+        'classificacao': 'ASSINADO' | 'MODELO' | 'AMBIGUO',
+        'sinais': dict com os sinais individuais detectados (para debug),
+      }
+    """
+    from pathlib import Path
+    nome = Path(input_path).name
+    nome_lower = nome.lower()
+    sinais = {}
+    score = 0
+
+    try:
+        tamanho_bytes = os.path.getsize(input_path)
+    except OSError:
+        tamanho_bytes = 0
+    tamanho_mb = tamanho_bytes / 1024 / 1024
+    sinais['tamanho_mb'] = round(tamanho_mb, 2)
+
+    # Sinal 1 — producer/creator do PDF (mais forte)
+    producer = ''
+    creator = ''
+    n_imagens_p1 = 0
+    text_chars_p1 = 0
+    paginas = 0
+    try:
+        with open_pdf(input_path) as doc:
+            paginas = len(doc)
+            meta = doc.metadata or {}
+            producer = (meta.get('producer') or '').lower()
+            creator = (meta.get('creator') or '').lower()
+            if paginas > 0:
+                p1 = doc[0]
+                text_chars_p1 = len((p1.get_text() or '').strip())
+                n_imagens_p1 = len(p1.get_images())
+    except Exception as e:
+        sinais['erro'] = str(e)
+
+    sinais['producer'] = producer
+    sinais['creator'] = creator
+    sinais['paginas'] = paginas
+    sinais['text_chars_p1'] = text_chars_p1
+    sinais['n_imagens_p1'] = n_imagens_p1
+
+    SCANNERS = ('intsig', 'camscanner', 'adobe scan', 'scannerpro',
+                'tinyscanner', 'genius scan', 'office lens', 'simple scan',
+                'docscanner', 'tap scanner')
+    EDITORES = ('microsoft® word', 'microsoft word', 'libreoffice',
+                'openoffice', 'wps writer', 'pages', 'google docs',
+                'foxit phantompdf', 'acrobat pro dc')
+
+    if any(s in producer or s in creator for s in SCANNERS):
+        score += 50
+        sinais['flag_scanner'] = True
+    if any(e in producer or e in creator for e in EDITORES):
+        score -= 50
+        sinais['flag_editor'] = True
+
+    # Sinal 2 — text-layer
+    if text_chars_p1 < 100:
+        score += 30
+        sinais['flag_sem_text_layer'] = True
+    elif text_chars_p1 > 500:
+        score -= 30
+        sinais['flag_text_layer_abundante'] = True
+
+    # Sinal 3 — imagens raster
+    if n_imagens_p1 >= 1:
+        score += 20
+        sinais['flag_tem_raster'] = True
+    elif n_imagens_p1 == 0 and text_chars_p1 > 500:
+        score -= 20
+        sinais['flag_sem_raster_com_texto'] = True
+
+    # Sinal 4 — tamanho
+    if tamanho_mb > 3:
+        score += 15
+        sinais['flag_grande'] = True
+    elif tamanho_mb < 1:
+        score -= 15
+        sinais['flag_pequeno'] = True
+
+    # Sinal 5 — nome (fraco)
+    if nome_lower.startswith('processo'):
+        score += 10
+        sinais['flag_nome_processo'] = True
+    elif nome_lower.startswith('kit') and 'assinad' not in nome_lower:
+        score -= 10
+        sinais['flag_nome_kit_em_branco'] = True
+
+    score = max(-100, min(100, score))
+
+    if score >= 50:
+        classificacao = 'ASSINADO'
+    elif score <= -30:
+        classificacao = 'MODELO'
+    else:
+        classificacao = 'AMBIGUO'
+
+    return {
+        'score': score,
+        'classificacao': classificacao,
+        'sinais': sinais,
+    }
+
+
+def escolher_kit_assinado(paths: list) -> dict:
+    """Recebe múltiplos PDFs candidatos a "kit do cliente" e devolve qual usar.
+
+    Aplica score_kit_assinado em cada um e seleciona o de maior score.
+    Em caso de empate, prefere o mais recente por mtime.
+
+    Não exclui nem move nenhum arquivo — apenas decide qual usar.
+
+    Retorna:
+      {
+        'escolhido': str (path do kit assinado) | None,
+        'descartados': list[str] (paths dos templates / outros),
+        'detalhes': list[dict] com score+sinais de cada candidato (ordenado),
+      }
+    """
+    if not paths:
+        return {'escolhido': None, 'descartados': [], 'detalhes': []}
+
+    detalhes = []
+    for p in paths:
+        info = score_kit_assinado(p)
+        info['path'] = p
+        try:
+            info['mtime'] = os.path.getmtime(p)
+        except OSError:
+            info['mtime'] = 0
+        detalhes.append(info)
+
+    # Ordena por score desc, depois mtime desc (mais recente primeiro)
+    detalhes.sort(key=lambda x: (x['score'], x['mtime']), reverse=True)
+
+    escolhido = detalhes[0]['path'] if detalhes[0]['score'] > 0 else None
+    descartados = [d['path'] for d in detalhes[1:]]
+
+    return {
+        'escolhido': escolhido,
+        'descartados': descartados,
+        'detalhes': detalhes,
+    }
+
+
 def render_page(input_path: str, page_num: int, output_path: str,
                 zoom: float = 2.0, rotation: int = 0) -> str:
     """Renderiza uma página como PNG. page_num é 1-indexed."""
