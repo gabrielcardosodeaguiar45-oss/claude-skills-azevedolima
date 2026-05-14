@@ -23,6 +23,7 @@ from helpers_redacao import (
     filtrar_descontos_contrato_corrente,
     dentro_prescricao_quinquenal,
     centralizar_celulas_tabela_quadro_sumario,
+    forcar_cambria_quadro_sumario,
     aplicar_12pt_no_polo_passivo,
     substituir_quali_banco,
     conjugacao_por_nacionalidade,
@@ -84,6 +85,12 @@ def gerar_inicial(caso, template_path, destino_docx):
 
     # 5. Centralizar tabela Quadro Sumario (caso o gerador nao tenha aplicado)
     centralizar_celulas_tabela_quadro_sumario(doc)
+
+    # 5-bis. Forçar fonte Cambria em TODAS as celulas do Quadro Sumario.
+    # Sem isto, os placeholders {{numero_do_contrato}}, {{valor_da_parcela}} e
+    # {{data_do_primeiro_desconto}} herdam fonte sans-serif do template em
+    # algumas variantes (feedback Gabriel 2026-05-14, ELIAS RCC AGIBANK).
+    forcar_cambria_quadro_sumario(doc)
 
     # 6. 12pt no polo passivo (caso o gerador nao tenha aplicado)
     aplicar_12pt_no_polo_passivo(doc)

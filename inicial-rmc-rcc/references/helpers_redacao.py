@@ -249,6 +249,43 @@ def centralizar_celulas_tabela_quadro_sumario(doc):
     return total
 
 
+def forcar_cambria_quadro_sumario(doc):
+    """Força fonte Cambria em TODOS os runs da primeira tabela (Quadro Sumário).
+
+    Motivação: os placeholders {{numero_do_contrato}}, {{valor_da_parcela}} e
+    {{data_do_primeiro_desconto}} herdavam a fonte do run-âncora do template,
+    que em algumas variantes não era Cambria (saía sans-serif). Feedback do
+    Gabriel em 2026-05-14 após revisão visual do RCC. Aplicar Cambria em
+    TODAS as células (não só na coluna direita) é defensivo — se já era
+    Cambria, fica Cambria; se era outra, vira Cambria.
+    """
+    if not doc.tables:
+        return 0
+    tabela = doc.tables[0]
+    total = 0
+    for row in tabela.rows:
+        for cell in row.cells:
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    rpr = run._element.find(qn("w:rPr"))
+                    if rpr is None:
+                        rpr = OxmlElement("w:rPr")
+                        run._element.insert(0, rpr)
+                    # Remove rFonts existente e reaplica com Cambria
+                    existente = rpr.find(qn("w:rFonts"))
+                    if existente is not None:
+                        rpr.remove(existente)
+                    rfonts = OxmlElement("w:rFonts")
+                    rfonts.set(qn("w:ascii"), "Cambria")
+                    rfonts.set(qn("w:hAnsi"), "Cambria")
+                    rfonts.set(qn("w:cs"), "Cambria")
+                    rfonts.set(qn("w:eastAsia"), "Cambria")
+                    # rFonts deve vir como primeiro filho de rPr
+                    rpr.insert(0, rfonts)
+                    total += 1
+    return total
+
+
 # ============================================================
 #   REGRA 4 — Tamanho 12pt no polo passivo
 # ============================================================
