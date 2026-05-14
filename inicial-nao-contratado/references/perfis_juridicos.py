@@ -55,10 +55,19 @@ PERFIS: Dict[str, Dict] = {
     # ========================================================
     #  AM — Estadual rito comum (TJAM) — Patrick
     # ========================================================
+    # REGRA AM (gravada 2026-05-14, Gabriel): no Amazonas o entendimento atual
+    # é AJUIZAR UMA AÇÃO POR CONTRATO. Mesmo banco/benefício com 2+ contratos
+    # NC → 2+ INICIAIS separadas (não consolidar). A NOTIFICAÇÃO extrajudicial,
+    # ao contrário, agrega todos os contratos do banco em uma única notificação.
+    # Esse entendimento é específico do AM e pode mudar.
+    # Estrutura no kit-juridico: usar subpasta `Contrato XXX/` dentro de
+    # `Não contratado/BANCO X/` mesmo quando há 1 banco com 2+ contratos no AM.
+    # Procurador (Patrick) e perfil seguem iguais.
     'AM_ESTADUAL': {
         'uf': 'AM',
         'foro': 'estadual',
-        'inclui_inss': False,  # Estadual, sem INSS
+        'inclui_inss': False,  # Estadual, sem INSS (mesmo se procuração menciona INSS)
+        'uma_inicial_por_contrato': True,  # AM-only — vide regra acima
         'procurador_chave_default': 'patrick',  # FIXO — só Patrick protocola PJe AM
         'comarcas_validas': [
             'Maués', 'Manaus', 'Boa Vista do Ramos', 'Caapiranga',
@@ -66,7 +75,8 @@ PERFIS: Dict[str, Dict] = {
         ],
         'templates_por_cenario': {
             '1contrato':   'inicial-jeam-base.docx',
-            'multiplos':   'inicial-jeam-base.docx',  # AM ainda não tem MULT
+            'multiplos':   'inicial-jeam-base.docx',  # AM nunca usa "multiplos"
+                                                       # por regra (1 inicial/contrato)
             'refin':       'inicial-jeam-refin.docx',
         },
         'end_inss_polo_passivo': None,  # N/A

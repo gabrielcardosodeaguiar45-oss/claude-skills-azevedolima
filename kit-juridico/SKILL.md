@@ -97,6 +97,7 @@ Estrutura `<CLIENTE>/<BENEFÍCIO>/<TESE>/<BANCO>/[Contrato XXX/]`:
 3. HISCRE vem único do INSS cobrindo ambos os NBs — replicar nas duas árvores.
 4. `pastas_acao[i].path_relativo` no formato `BENEFÍCIO/TESE/BANCO` (3 níveis).
 5. Colapso de `Contrato XXX/`: aplicar SÓ se banco tem 2+ contratos no mesmo benefício; com 1 contrato, deixar docs direto na pasta do banco.
+   - **EXCEÇÃO AM (gravada 2026-05-14, Gabriel):** no Amazonas o entendimento atual é **uma ação por contrato**. Quando UF=AM e a pasta-de-ação `Não contratado/BANCO X/` tiver 2+ contratos NC no mesmo banco/benefício, criar subpastas `Contrato XXX/` (uma por contrato) com replicação completa dos documentos comuns + HISCON grifado SÓ daquele contrato + procuração específica + 1 inicial separada. A NOTIFICAÇÃO extrajudicial, ao contrário, agrega todos os contratos do banco em um só docx em `Não contratado/BANCO X/notificacao/` (fora das subpastas Contrato XXX/). Entendimento AM-only; quando mudar, atualizar esta regra e `inicial-nao-contratado/references/perfis_juridicos.py` (flag `uma_inicial_por_contrato`). Caso paradigma: MARIA AZEVEDO PARINTINS (Maurivã) 2026-05-14 — 2 contratos PAN NC.
 6. Pasta `notificacao/` SEM subpasta de banco interna quando há 1 só banco em cada pasta-de-ação (regra escritório 2026-05-14).
 
 ### Cliente com UM benefício INSS (formato simplificado)

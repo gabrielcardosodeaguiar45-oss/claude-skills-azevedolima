@@ -241,7 +241,7 @@ nas pastas de ação.
 ## 11. Termos e fotos auxiliares (pasta `0. Kit/`)
 
 ```
-Termo de atendimento e consentimento LGPD.pdf
+Declaração de ciência, consentimento e concordância (LGPD).pdf
 KIT - assinado.pdf                                           (kit completo assinado)
 KIT - modelo em branco.docx                                  (modelo editável Word, sem assinatura)
 KIT - modelo em branco.pdf                                   (modelo PDF sem assinatura)
@@ -251,6 +251,15 @@ Vídeo do cliente.mp4
 Senha INSS.txt                                               (ou .jpg se foi foto)
 Senha gov.br.txt
 ```
+
+> **REGRA ABSOLUTA (gravada 2026-05-14, Gabriel):** a **Declaração de ciência,
+> consentimento e concordância (LGPD)** — também chamada de "Termo de atendimento
+> e consentimento LGPD" — fica **EXCLUSIVAMENTE** em `0. Kit/`. Nunca replicar
+> nas pastas de ação (`Não contratado/`, `RMC/`, `RCC/`, `Bradesco/`, etc.).
+> Esse termo é interno da relação cliente↔escritório (cumprimento de LGPD na
+> coleta de dados pessoais para o atendimento) — não é instrução processual nem
+> integra o dossiê extrajudicial. Não usar o nome `4.1 - Declaração de
+> ciência...` nas pastas de ação. Caso paradigma: LUIZ PIRES (Ruth) 2026-05-14.
 
 ## Regras gerais
 
