@@ -731,6 +731,35 @@ def processar_cliente(pasta_cliente: str, log: list):
         log[-1]['status'] = 'skip-qualif-vazia'
         return
     qual['nome'] = estado.get('cliente', {}).get('nome_completo', '')
+
+    # FALLBACK CPF/RG/endereço via _estado_cliente.json — quando a OCR da
+    # procuração falha (caso paradigma: LADIMIR DA SILVA 2026-05-14, CPF
+    # ficou vazio na notificação), o JSON do cliente é fonte autoritativa.
+    # O JSON é populado pela skill `kit-juridico` na fase K (`fase_k_salvar_estado_cliente`).
+    cliente_json = estado.get('cliente', {}) if isinstance(estado.get('cliente'), dict) else {}
+    endereco_json = cliente_json.get('endereco', {}) if isinstance(cliente_json.get('endereco'), dict) else {}
+    _override = {
+        'cpf': cliente_json.get('cpf'),
+        'rg': cliente_json.get('rg'),
+        'rg_orgao': cliente_json.get('orgao_expedidor'),
+        'estado_civil': cliente_json.get('estado_civil'),
+        'profissao': cliente_json.get('profissao'),
+        'nacionalidade': cliente_json.get('nacionalidade'),
+        'logradouro': endereco_json.get('logradouro'),
+        'numero': endereco_json.get('numero'),
+        'bairro': endereco_json.get('bairro'),
+        'municipio': endereco_json.get('cidade'),
+        'uf': endereco_json.get('uf'),
+        'cep': endereco_json.get('cep'),
+    }
+    for k, v in _override.items():
+        # Só preenche se OCR não trouxe nada (string vazia ou None)
+        if v and not qual.get(k):
+            qual[k] = v
+    # Endereço composto (logradouro + numero) — só compõe se OCR não trouxe
+    if not qual.get('logradouro') and endereco_json.get('logradouro') and endereco_json.get('numero'):
+        qual['logradouro'] = f"{endereco_json['logradouro']}, n° {endereco_json['numero']}"
+
     print(f'  Qualificação: nome={qual.get("nome")!r} cpf={qual.get("cpf")!r} '
           f'rg={qual.get("rg")!r} estado_civil={qual.get("estado_civil")!r}')
 
