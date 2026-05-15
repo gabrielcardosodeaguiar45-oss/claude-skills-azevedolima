@@ -517,8 +517,32 @@ def renderizar_caso(caso, pasta_saida):
     destino_rel = os.path.join(pasta_saida, f"RELATORIO_PENDENCIAS_{nome_safe}.docx")
     gerar_relatorio_pendencias(caso, destino_rel)
 
+    # 6. AUDITORIA DE PLACEHOLDERS — padrão alinhado com inicial-nao-contratado
+    #    (paradigma MARIA AZEVEDO 2026-05-14): após salvar a inicial, varrer
+    #    o docx atrás de {{...}} restantes. Se sobrar algum, é descompasso
+    #    template×dict — exige correção da skill (e não do operador).
+    #    Documentação em SKILL.md seção "Auditoria de placeholders".
+    import re as _re
+    from docx import Document as _Doc
+    _doc = _Doc(destino_docx)
+    _residuais = []
+    for _par in _doc.paragraphs:
+        for _ph in _re.findall(r'\{\{[^}]+\}\}', _par.text):
+            if _ph not in _residuais:
+                _residuais.append(_ph)
+    for _tbl in _doc.tables:
+        for _row in _tbl.rows:
+            for _cell in _row.cells:
+                for _par in _cell.paragraphs:
+                    for _ph in _re.findall(r'\{\{[^}]+\}\}', _par.text):
+                        if _ph not in _residuais:
+                            _residuais.append(_ph)
+    if _residuais:
+        print(f"  ⚠ placeholders residuais em {os.path.basename(destino_docx)}: {_residuais}")
+
     return {
         "inicial": destino_docx,
         "planilha": destino_xlsx,
         "relatorio": destino_rel,
+        "residuais": _residuais,
     }

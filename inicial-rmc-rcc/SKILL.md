@@ -233,7 +233,32 @@ Texto canônico NC do pedido: *"A prioridade na tramitação, tendo em vista que
 
 Nome do banco em **Segoe UI Bold via rStyle="2TtuloChar"**, resto em **Cambria**. Ambos com `w:sz val="24"` (= 12pt) e grifo amarelo.
 
-### 7. Memória de cálculo XLSX em ABA ÚNICA
+### 7. Auditoria de placeholders (regra gravada 2026-05-14, paradigma Maria Azevedo)
+
+Após salvar a inicial, `renderizar_caso` varre o docx (`{{...}}`) e devolve a lista no campo `residuais` do retorno (padrão alinhado com `inicial-nao-contratado/_pipeline_caso_am.py`):
+
+```python
+res = renderizar_caso(caso, pasta)
+if res.get('residuais'):
+    print('⚠ placeholders sobrando:', res['residuais'])
+```
+
+Se sobrar qualquer `{{...}}`, **é descompasso template×dict** e a skill precisa ser corrigida (adicionar entrada em `montar_dict_placeholders` em `_pipeline_caso.py`). NUNCA editar o docx manualmente — o problema sempre estará no dict.
+
+**Convenção de placeholders canônicos (alinhada com os templates AM 2026-05-14):**
+
+| Grupo | Placeholders |
+|---|---|
+| Comarca | `{{competencia}}` |
+| Autora | `{{nome_completo}}`, `{{nacionalidade}}`, `{{estado_civil}}`, `{{profissao}}`, `{{cpf}}`, `{{rg}}`, `{{orgao_expedidor}}`, `{{logradouro}}`, `{{numero}}`, `{{bairro}}`, `{{cidade_de_residencia}}`, `{{uf}}`, `{{cep}}`, `{{inscrito}}`, `{{domiciliado}}` |
+| Benefício | `{{tipo_de_beneficio}}`, `{{numero_do_beneficio}}`, `{{conta_agencia_conta}}`, `{{banco_que_recebe}}`, `{{valor_liquido_beneficio}}` |
+| Contrato | `{{numero_do_contrato}}`, `{{data_do_primeiro_desconto}}`, `{{data_da_inclusão}}` (com cedilha+acento — variante histórica do template AM RMC), `{{data_da_inclusao}}` (variante sem acento, fallback), `{{anos_meses_ativo}}`, `{{total_de_parcelas}}`, `{{valor_da_parcela}}` |
+| Cálculos | `{{valor_dobro}}`, `{{valor_dobro_extenso}}`, `{{valor_final_da_causa}}`, `{{valor_final_da_causa_por_extenso}}` |
+| Escritório | `{{endereco_escritorio}}` |
+
+> Quando adicionar campo novo no template, **obrigatoriamente** atualizar o dict `montar_dict_placeholders` e esta tabela. A auditoria pega o esquecimento, mas o ideal é o template e o dict moverem juntos.
+
+### 8. Memória de cálculo XLSX em ABA ÚNICA
 
 Para facilitar exportação PDF e juntada ao processo. NUNCA gerar planilha multi-aba.
 
