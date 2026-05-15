@@ -99,6 +99,48 @@ def gerar_inicial(caso, template_path, destino_docx):
     return doc
 
 
+def _humanizar_anos_meses(data_inclusao_str, ref=None):
+    """Recebe 'dd/mm/aaaa' (ou 'mm/aaaa') e devolve string 'X anos e Y meses'
+    contados até a data de referência (default: hoje). Usada no parágrafo
+    'o empréstimo foi contratado em DATA, ou seja, há ANOS_MESES...'.
+    """
+    if ref is None:
+        ref = date.today()
+    if not data_inclusao_str:
+        return ""
+    s = str(data_inclusao_str).strip()
+    partes = s.split("/")
+    try:
+        if len(partes) == 3:
+            dia, mes, ano = int(partes[0]), int(partes[1]), int(partes[2])
+        elif len(partes) == 2:
+            dia = 1
+            mes, ano = int(partes[0]), int(partes[1])
+        else:
+            return ""
+    except ValueError:
+        return ""
+    if ano < 100:
+        ano += 2000
+    try:
+        ini = date(ano, mes, dia)
+    except ValueError:
+        return ""
+    meses_total = (ref.year - ini.year) * 12 + (ref.month - ini.month)
+    if ref.day < ini.day:
+        meses_total -= 1
+    if meses_total < 0:
+        meses_total = 0
+    anos = meses_total // 12
+    meses = meses_total % 12
+    partes_h = []
+    if anos:
+        partes_h.append(f"{anos} ano" + ("s" if anos != 1 else ""))
+    if meses or not anos:
+        partes_h.append(f"{meses} {'meses' if meses != 1 else 'mês'}")
+    return " e ".join(partes_h)
+
+
 def montar_dict_placeholders(caso, inscrito, domiciliado):
     """Monta o dict de substituicao a partir dos dados do caso."""
     autora = caso["autora"]
@@ -106,6 +148,9 @@ def montar_dict_placeholders(caso, inscrito, domiciliado):
     contrato = caso["contrato"]
     calc = caso["calculo"]
     perfil_uf = caso["perfil"]
+
+    data_inclusao = contrato.get("data_inclusao", "")
+    anos_meses = _humanizar_anos_meses(data_inclusao) if data_inclusao else ""
 
     return {
         "{{competencia}}": caso.get("comarca", perfil_uf["comarca_default"]),
@@ -134,6 +179,12 @@ def montar_dict_placeholders(caso, inscrito, domiciliado):
         # Contrato
         "{{numero_do_contrato}}": contrato["numero"],
         "{{data_do_primeiro_desconto}}": contrato["data_primeiro_desconto"],
+        # Placeholders do template RMC (parágrafo "o empréstimo foi contratado
+        # em DATA, ou seja, há ANOS_MESES..."). Cobrem variantes ortográficas
+        # encontradas nos templates AM (com/sem cedilha+acento).
+        "{{data_da_inclusão}}": data_inclusao,
+        "{{data_da_inclusao}}": data_inclusao,
+        "{{anos_meses_ativo}}": anos_meses,
         "{{total_de_parcelas}}": str(calc["total_parcelas_historico"]),
         "{{valor_da_parcela}}": fmt_brl(calc["valor_parcela_atual"]),
         # Calculos
