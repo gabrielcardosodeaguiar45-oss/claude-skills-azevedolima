@@ -23,6 +23,96 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
+
+# ============================================================================
+# Patch E — Validador pré/pós-XLSX (2026-05-16)
+# ----------------------------------------------------------------------------
+# Caso paradigma VILSON/BANRISUL: XLSX gerado com R$ 50,00 × 29 meses fictícios
+# (fallback do runner). Esta validação aborta a geração se algum contrato vier
+# com valor_parcela <= 0 ou qtd_parcelas <= 0 — NÃO permite mais "calcular zero".
+# ============================================================================
+
+class CalculoIndebitoInvalidoError(RuntimeError):
+    """Levantada quando dados de cálculo são insuficientes ou fictícios."""
+    pass
+
+
+def _validar_consistencia_competencia_fim(contratos: List[Dict]) -> List[str]:
+    """Valida que `competencia_fim_str` é consistente com `situacao`.
+
+    Aviso (não-fatal): se contrato está com `situacao=Excluído` ou `Encerrado`
+    e NÃO tem `competencia_fim_str`/`data_exclusao_str`, o cálculo vai projetar
+    descontos até o mês atual — pode somar parcelas inexistentes.
+
+    Caso paradigma VILSON / BANRISUL: contrato portado em 26/08/2025 (excluído
+    08/2025), mas o calculator projetou até 05/2026 — 10 parcelas inventadas.
+
+    Returns: lista de avisos (vazia se OK).
+    """
+    avisos = []
+    for i, c in enumerate(contratos, 1):
+        numero = c.get('numero') or c.get('contrato') or '?'
+        sit = (c.get('situacao') or '').strip().lower()
+        comp_fim = (c.get('competencia_fim_str') or c.get('competencia_fim') or '').strip()
+        data_exc = (c.get('data_exclusao_str') or c.get('data_exclusao') or '')
+
+        if sit in ('excluído', 'excluido', 'encerrado'):
+            if not comp_fim and not data_exc:
+                avisos.append(
+                    f'Contrato {i} (nº {numero}): situação "{sit.upper()}" mas '
+                    f'sem `competencia_fim`/`data_exclusao` no dict. O cálculo '
+                    f'vai projetar descontos até o mês atual e pode somar '
+                    f'parcelas inexistentes. Preencher antes de gerar XLSX.'
+                )
+    return avisos
+
+
+def _validar_contratos_para_calculo(contratos: List[Dict]) -> None:
+    """Aborta se algum contrato a calcular está incompleto.
+
+    Mesma filosofia do Patch C (validar_contratos_obrigatorios da skill
+    inicial-nao-contratado), mas focado nos campos exigidos pelo cálculo:
+    valor_parcela > 0, qtd_parcelas > 0, competencia_inicio.
+    """
+    erros = []
+    for i, c in enumerate(contratos, 1):
+        numero = c.get('numero') or c.get('contrato') or '?'
+        prefix = f'Contrato {i} (nº {numero})'
+
+        vp_raw = (c.get('valor_parcela_float') or c.get('valor_parcela')
+                  or c.get('valor_parcela_str'))
+        try:
+            if isinstance(vp_raw, (int, float)):
+                vp = float(vp_raw)
+            elif isinstance(vp_raw, str):
+                vp = float(re.sub(r'[^\d,.-]', '', vp_raw).replace('.', '').replace(',', '.') or '0')
+            else:
+                vp = 0.0
+        except (ValueError, TypeError):
+            vp = 0.0
+        if vp <= 0:
+            erros.append(f'{prefix}: valor_parcela inválido ({vp_raw!r}).')
+
+        qtd = c.get('qtd_parcelas') or 0
+        try:
+            qtd = int(qtd)
+        except (ValueError, TypeError):
+            qtd = 0
+        if qtd <= 0:
+            erros.append(f'{prefix}: qtd_parcelas inválido ({c.get("qtd_parcelas")!r}).')
+
+        ci = c.get('competencia_inicio_str') or c.get('competencia_inicio') or ''
+        if not re.match(r'^\d{2}/\d{4}$', str(ci).strip()):
+            erros.append(f'{prefix}: competência início inválida ({ci!r}).')
+
+    if erros:
+        raise CalculoIndebitoInvalidoError(
+            'XLSX de indébito NÃO PODE ser gerado — dados insuficientes:\n'
+            + '\n'.join(f'  • {e}' for e in erros)
+            + '\n\nFallbacks fictícios (R$ 50,00, 84 parcelas, "01/2021") foram '
+              'BANIDOS em 2026-05-16 (caso paradigma VILSON/BANRISUL).'
+        )
+
 # Import indices_oficiais — mesmo diretório
 import sys
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -245,6 +335,136 @@ def calcular_dano_moral(n_contratos: int) -> Dict:
             'criterio': f'R$ 5.000,00 × {n_contratos} contratos'}
 
 
+def calcular_valor_causa_nc(
+    contratos: List[Dict],
+    data_apuracao: Optional[date] = None,
+    dano_moral_unico: float = 15000.0,
+    dano_temporal: float = 5000.0,
+) -> Dict:
+    """Calcula o VALOR DA CAUSA para ação NC/RMC/RCC.
+
+    Fórmula oficial do escritório (UNIFICADA inicial+XLSX, 2026-05-16):
+
+        valor_causa = (TODAS_parcelas_descontadas × valor_parcela × 2)
+                      + dano_moral
+                      + dano_temporal
+
+    **NÃO aplica prescrição retroativa.** Tese do trato sucessivo: em
+    descontos mensais consecutivos, o termo inicial da prescrição flui
+    do ÚLTIMO desconto, não do primeiro. Logo, ajuizando dentro de 5
+    anos do último desconto, TODAS as parcelas históricas são impugnáveis
+    (mesmo as anteriores a 5 anos do ajuizamento).
+
+    Respeita:
+      - `competencia_fim` quando o contrato foi extinto (portabilidade,
+        quitação) antes do mês de apuração — não soma parcelas que não
+        aconteceram
+      - mês de apuração (não soma parcelas projetadas para o futuro)
+
+    NÃO respeita prescrição quinquenal — pelas razões acima.
+
+    Args:
+        contratos: lista de dicts no formato `formatar_contrato_para_template`
+        data_apuracao: default = hoje
+        dano_moral_unico: R$ 15.000 para 1 contrato isolado
+        dano_temporal: R$ 5.000 (REsp 1.737.412/SP — teoria do desvio produtivo)
+
+    Returns:
+        {
+          'valor_causa': float,
+          'soma_parcelas': float,         # TODAS as parcelas descontadas
+          'dobro': float,
+          'dano_moral': float,
+          'dano_temporal': float,
+          'qtd_parcelas_total': int,
+          'detalhes_por_contrato': [...],
+        }
+    """
+    if data_apuracao is None:
+        data_apuracao = date.today()
+    if not contratos:
+        return {'valor_causa': 0.0, 'soma_parcelas': 0.0,
+                'dobro': 0.0, 'dano_moral': 0.0, 'dano_temporal': 0.0,
+                'qtd_parcelas_total': 0,
+                'detalhes_por_contrato': []}
+
+    soma_total = 0.0
+    qtd_total = 0
+    detalhes = []
+
+    for c in contratos:
+        # Valor da parcela
+        vp = (c.get('valor_parcela_float') or c.get('valor_parcela'))
+        if isinstance(vp, str):
+            vp = _parse_brl(vp)
+        vp = float(vp or 0)
+        # Qtd parcelas
+        qtd = int(c.get('qtd_parcelas') or 0)
+        # Competência início
+        ci = _parse_competencia(
+            c.get('competencia_inicio_str') or c.get('competencia_inicio'))
+        # Competência fim (HISCON ou default = parcelas projetadas)
+        cf_str = c.get('competencia_fim_str') or c.get('competencia_fim')
+        cf = _parse_competencia(cf_str) if cf_str else None
+
+        if not ci or qtd <= 0 or vp <= 0:
+            detalhes.append({
+                'contrato': c.get('numero') or c.get('contrato'),
+                'erro': 'dados insuficientes',
+            })
+            continue
+
+        ano_ini, mes_ini = ci
+        # Limite: min(competencia_fim, mês_apuração, ci+qtd-1)
+        if cf:
+            ano_lim, mes_lim = cf
+        else:
+            total_m = mes_ini + qtd - 1
+            ano_lim = ano_ini + (total_m - 1) // 12
+            mes_lim = ((total_m - 1) % 12) + 1
+        if (ano_lim, mes_lim) > (data_apuracao.year, data_apuracao.month):
+            ano_lim, mes_lim = data_apuracao.year, data_apuracao.month
+
+        # Itera mês a mês — SOMA TODAS as parcelas (trato sucessivo)
+        qtd_hist = 0
+        soma_hist = 0.0
+        a, m = ano_ini, mes_ini
+        while (a, m) <= (ano_lim, mes_lim):
+            qtd_hist += 1
+            soma_hist += vp
+            m += 1
+            if m > 12:
+                m = 1
+                a += 1
+        soma_total += soma_hist
+        qtd_total += qtd_hist
+        detalhes.append({
+            'contrato': c.get('numero') or c.get('contrato'),
+            'valor_parcela': vp,
+            'qtd_parcelas': qtd_hist,
+            'soma_parcelas': soma_hist,
+            'dobro_parcial': soma_hist * 2,
+        })
+
+    dobro = soma_total * 2
+    n_contratos = len(contratos)
+    if n_contratos == 1:
+        dm = dano_moral_unico
+    else:
+        dm = 5000.0 * n_contratos
+    valor_causa = dobro + dm + dano_temporal
+    return {
+        'valor_causa': valor_causa,
+        'soma_parcelas': soma_total,
+        'dobro': dobro,
+        'dano_moral': dm,
+        'dano_temporal': dano_temporal,
+        'qtd_parcelas_total': qtd_total,
+        'detalhes_por_contrato': detalhes,
+        'data_apuracao': data_apuracao.isoformat(),
+    }
+
+
 def gerar_excel_indebito(
     contratos: List[Dict],
     cliente_nome: str,
@@ -280,8 +500,63 @@ def gerar_excel_indebito(
     if data_apuracao is None:
         data_apuracao = date.today()
 
+    # Patch E (2026-05-16) — Validação pré-XLSX
+    # Aborta se algum contrato vem com valor zero, qtd inválida, competência
+    # vazia (sintomas de fallback fictício do tipo R$ 50,00 × 84 parcelas).
+    _validar_contratos_para_calculo(contratos)
+
+    # Patch G (2026-05-16) — Aviso de consistência competencia_fim vs situação
+    # Não aborta (alguns templates aceitam alerta), mas registra para o caller
+    # poder propagar como ALERTA na inicial.
+    avisos_consistencia = _validar_consistencia_competencia_fim(contratos)
+    if avisos_consistencia:
+        # Imprime para o stderr (caller pode capturar) e segue
+        import sys
+        for a in avisos_consistencia:
+            print(f'⚠ INCONSISTÊNCIA HISCON: {a}', file=sys.stderr)
+
     calculos = [calcular_contrato(c, data_apuracao, taxa_juros_mes_pct)
                 for c in contratos]
+
+    # Patch G (2026-05-16) — Validação pós-cálculo:
+    # detecta se há parcelas projetadas APÓS a data_exclusao do contrato.
+    # Sintoma: cálculo somando meses inexistentes (porque o contrato foi
+    # extinto e a calculadora ignorou competencia_fim).
+    for cidx, calc in enumerate(calculos):
+        cont = contratos[cidx]
+        data_exc_raw = (cont.get('data_exclusao') or cont.get('data_exclusao_str'))
+        if not data_exc_raw:
+            continue
+        from datetime import datetime as _dt
+        data_exc = None
+        if isinstance(data_exc_raw, _dt):
+            data_exc = data_exc_raw
+        elif isinstance(data_exc_raw, str):
+            for fmt in ('%Y-%m-%dT%H:%M:%S', '%Y-%m-%d', '%d/%m/%Y'):
+                try:
+                    data_exc = _dt.strptime(data_exc_raw[:19], fmt)
+                    break
+                except ValueError:
+                    continue
+        if data_exc is None:
+            continue
+        # Se alguma parcela tem competência > mês da exclusão, é bug
+        for p in calc.get('parcelas', []):
+            comp = p.get('competencia', '')
+            try:
+                mes_s, ano_s = comp.split('/')
+                p_dt = _dt(int(ano_s), int(mes_s), 1)
+                # Permite até a competência da própria exclusão (mês fechado)
+                if (p_dt.year, p_dt.month) > (data_exc.year, data_exc.month):
+                    raise CalculoIndebitoInvalidoError(
+                        f'Contrato nº {cont.get("numero")}: cálculo gerou '
+                        f'parcela em {comp} mas o contrato foi EXCLUÍDO em '
+                        f'{data_exc.strftime("%d/%m/%Y")}. Provável bug de '
+                        f'projeção — verificar `competencia_fim_str` no '
+                        f'contrato e ajustar antes de gerar XLSX.'
+                    )
+            except (ValueError, AttributeError):
+                continue
 
     wb = Workbook()
     wb.remove(wb.active)

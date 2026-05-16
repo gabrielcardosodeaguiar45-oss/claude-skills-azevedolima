@@ -86,6 +86,10 @@ def parse_hiscre(pdf_path: str) -> Dict:
         'competencia_referencia': None,
         'valor_liquido': None,
         'data_pagamento': None,
+        # 2026-05-16 — alertas de qualidade do parse (caso paradigma VILSON)
+        # Preenchidos no fim de parse_hiscre() depois de detectar a competência.
+        # Se não-vazio, o pipeline deve propagar como ALERTA na inicial.
+        'alertas_qualidade': [],
     }
 
     doc = fitz.open(pdf_path)
@@ -160,29 +164,111 @@ def parse_hiscre(pdf_path: str) -> Dict:
             continue
 
     # === Procurar "Valor Líquido" e o valor R$ associado ===
-    # Padrão típico:
-    #   Valor
-    #   Líquido          ← linha
+    # Padrão típico de cada bloco de competência:
+    #   Valor                          ← cabeçalho de tabela
+    #   Líquido
     #   ... (outras colunas: Meio de Pagamento, Status, ...)
-    #   09/2025          ← competência
-    #   R$ 2.530,87 CCF - CONTA-CORRENTE     ← linha com valor + meio
+    #   09/2025                        ← competência
+    #   R$ 2.530,87 CCF - CONTA-CORRENTE
     #
-    # Estratégia: depois de achar 'Valor\nLíquido', a primeira linha que casa
-    # 'R$ XXX,XX ALGUMA_COISA' tem o valor líquido.
-    pos_val_liquido = -1
-    for i, l in enumerate(linhas):
-        if l == 'Valor' and i + 1 < len(linhas) and linhas[i + 1] == 'Líquido':
-            pos_val_liquido = i
-            break
-    if pos_val_liquido >= 0:
-        for j in range(pos_val_liquido + 2, min(pos_val_liquido + 25, len(linhas))):
-            cand = linhas[j]
-            m = re.match(r'^R\$\s*([\d.,]+)\s*(\w.*)?$', cand)
+    # CORREÇÃO 2026-05-16 (caso VILSON): o parser anterior só lia a página 1
+    # do PDF, pegando a PRIMEIRA competência (mais antiga) quando o HISCRE
+    # está em ordem cronológica crescente (ex.: Vilson tem 55 páginas
+    # 01/2020 → 02/2026; o valor de 01/2020 era R$ 689,92, mas em 02/2026
+    # ele recebe R$ 988,43). Agora varremos TODAS as páginas e procuramos a
+    # ÚLTIMA competência com status "Pago" + Valor Líquido.
+    todas_linhas = []
+    for pagina in range(len(doc)):
+        txt_pag = doc[pagina].get_text()
+        todas_linhas.extend(l.strip() for l in txt_pag.split('\n') if l.strip())
+
+    # Estratégia robusta (tolerante à quebra de linhas do fitz):
+    #   1. Caça toda ocorrência de "MM/AAAA" como linha isolada (= competência).
+    #   2. Olha nas 30 linhas seguintes:
+    #      - precisa achar "Pago" (confirma competência paga)
+    #      - precisa achar "Origem: Maciça" (filtra fora pagamentos PAB
+    #        suplementares avulsos, ex.: complementações)
+    #      - precisa achar UM "R$ XXX,XX" (valor líquido — o PRIMEIRO)
+    #   3. Mantém a competência (ano, mês, valor) MAIS RECENTE, ignorando
+    #      meses 04 e 05 (antecipação de 13º distorce o valor mensal).
+    #
+    # Caso paradigma VILSON (2026-05-16): HISCRE tem 55 páginas.
+    # - Página 53: 01/2026 R$ 154,07 Origem PAB (complementação avulsa).
+    # - Página 54: 01/2026 R$ 988,43 Origem Maciça (pagamento mensal real).
+    # Sem o filtro Maciça, o parser pegava 154,07.
+    competencia_atual = None
+    melhor_comp = None  # tupla (ano, mes, valor)
+    melhor_comp_fallback = None  # idem, mas aceita meses 04/05 com 13º
+    for idx, lin in enumerate(todas_linhas):
+        m_comp = re.match(r'^(\d{2})/(\d{4})$', lin)
+        if not m_comp:
+            continue
+        try:
+            mes = int(m_comp.group(1))
+            ano = int(m_comp.group(2))
+        except ValueError:
+            continue
+        if not (1 <= mes <= 12 and 2000 <= ano <= 2100):
+            continue
+        # Filtra competências do CABEÇALHO ("Compet. Inicial: 01/2020" /
+        # "Compet. Final: 02/2026"), que se repetem em cada página do HISCRE.
+        # O fitz extrai essas linhas perto de "Compet. Inicial:" ou
+        # "Compet. Final:" (até 3 linhas antes ou depois).
+        vizinhanca = todas_linhas[max(0, idx - 3): idx] + todas_linhas[idx + 1: idx + 4]
+        if any('Compet. Inicial' in v or 'Compet. Final' in v for v in vizinhanca):
+            continue
+        janela = todas_linhas[idx + 1: idx + 31]
+        if not any('Pago' in c for c in janela):
+            continue
+        if not any('Maci' in c for c in janela):
+            # 'Maci' cobre tanto "Maciça" quanto possíveis grafias sem cedilha
+            continue
+        valor_liq = None
+        for cand in janela:
+            m = re.match(r'^R\$\s*([\d.,]+)$', cand)
+            if not m:
+                m = re.match(r'^R\$\s*([\d.,]+)\s+\S', cand)
             if m:
                 v = _to_float('R$ ' + m.group(1))
-                if v and v > 100:  # sanity check
-                    out['valor_liquido'] = v
+                if v and v > 50:
+                    valor_liq = v
                     break
+        if valor_liq is None:
+            continue
+        cand_tup = (ano, mes, valor_liq)
+        # Sempre atualiza o fallback (aceita 04/05)
+        if melhor_comp_fallback is None or cand_tup[:2] > melhor_comp_fallback[:2]:
+            melhor_comp_fallback = cand_tup
+        # 04 (1ª parcela 13º) e 05 (2ª parcela 13º + folha): valor distorcido,
+        # só usa se não houver outro mês.
+        if mes in (4, 5):
+            continue
+        if melhor_comp is None or cand_tup[:2] > melhor_comp[:2]:
+            melhor_comp = cand_tup
+
+    # Se SÓ existem meses 04/05, usa o fallback
+    if melhor_comp is None:
+        melhor_comp = melhor_comp_fallback
+
+    if melhor_comp:
+        out['valor_liquido'] = melhor_comp[2]
+        out['competencia_referencia'] = f'{melhor_comp[1]:02d}/{melhor_comp[0]}'
+    else:
+        # Fallback: comportamento antigo (página 1) caso a varredura nova falhe
+        pos_val_liquido = -1
+        for i, l in enumerate(linhas):
+            if l == 'Valor' and i + 1 < len(linhas) and linhas[i + 1] == 'Líquido':
+                pos_val_liquido = i
+                break
+        if pos_val_liquido >= 0:
+            for j in range(pos_val_liquido + 2, min(pos_val_liquido + 25, len(linhas))):
+                cand = linhas[j]
+                m = re.match(r'^R\$\s*([\d.,]+)\s*(\w.*)?$', cand)
+                if m:
+                    v = _to_float('R$ ' + m.group(1))
+                    if v and v > 100:
+                        out['valor_liquido'] = v
+                        break
 
     # === Banco pagador ===
     for l in linhas:
@@ -205,6 +291,51 @@ def parse_hiscre(pdf_path: str) -> Dict:
             break
 
     doc.close()
+
+    # === Patch — alertas de qualidade do parse (2026-05-16) ===
+    # Caso paradigma VILSON: parser pegou competência 01/2020 (2 anos atrás)
+    # quando o HISCRE tinha 55 páginas até 02/2026. Esses alertas detectam
+    # o sintoma e forçam o pipeline a propagar para o operador.
+    from datetime import datetime as _dt
+    hoje = _dt.today()
+    if not out.get('valor_liquido'):
+        out['alertas_qualidade'].append(
+            '🚨 VALOR LÍQUIDO do HISCRE não foi extraído. A inicial NÃO pode '
+            'mencionar renda real do autor sem este dado. Verificar o PDF do '
+            'HISCRE manualmente ou rejeitar a geração.'
+        )
+    if out.get('competencia_referencia'):
+        try:
+            mes_s, ano_s = out['competencia_referencia'].split('/')
+            comp_ref_dt = _dt(int(ano_s), int(mes_s), 1)
+            meses_atraso = (hoje.year - comp_ref_dt.year) * 12 + (hoje.month - comp_ref_dt.month)
+            if meses_atraso > 12:
+                out['alertas_qualidade'].append(
+                    f'🚨 HISCRE com competência muito ANTIGA: '
+                    f'{out["competencia_referencia"]} ({meses_atraso} meses '
+                    f'atrás). Provável bug de parse — pegou competência '
+                    f'inicial do extrato em vez da mais recente. CONFERIR '
+                    f'antes do protocolo ou puxar HISCRE novo.'
+                )
+            elif meses_atraso > 6:
+                out['alertas_qualidade'].append(
+                    f'⚠ HISCRE com competência {out["competencia_referencia"]} '
+                    f'({meses_atraso} meses atrás). Considere puxar HISCRE '
+                    f'atualizado se o caso ainda está em fase de protocolo.'
+                )
+        except (ValueError, AttributeError):
+            pass
+
+    # Sanity check do valor líquido vs MR (salário bruto)
+    if out.get('valor_liquido') and out.get('mr'):
+        if out['valor_liquido'] > out['mr'] * 1.5:
+            out['alertas_qualidade'].append(
+                f'⚠ Valor líquido (R$ {out["valor_liquido"]:.2f}) muito acima '
+                f'do MR/bruto (R$ {out["mr"]:.2f}). Provável captura indevida '
+                f'de competência com 13º antecipado ou outro pagamento atípico. '
+                f'CONFERIR.'
+            )
+
     return out
 
 

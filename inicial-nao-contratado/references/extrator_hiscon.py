@@ -181,6 +181,46 @@ def filtrar_contratos_por_numero(contratos: List[Dict], numeros: List[str],
                 achados_set.add(k)
                 break
 
+    # 4ª passada: SUFIXO/PREFIXO COMUM com diferença de até 2 dígitos
+    # Caso paradigma: VILSON / BANRISUL — procuração tem '...917305' (clean
+    # após lstrip = '917305'), HISCON tem '...09173052' (clean = '9173052').
+    # Match exato falhou, Hamming falhou (tamanhos diferentes), lstrip exato
+    # falhou (1 dígito extra). Esta passada aceita quando o número da
+    # procuração (após lstrip) é PREFIXO ou SUBSTRING do HISCON (após lstrip)
+    # com diferença de até 2 dígitos. Marca como `_match_substring` e gera
+    # alerta CRÍTICO para conferência manual obrigatória.
+    nao_encontrados = [n for n in nums_norm if n not in achados_set]
+    for n in nao_encontrados:
+        n_clean = n.lstrip('0')
+        if len(n_clean) < 5:
+            # Números muito curtos têm risco alto de falso positivo
+            continue
+        melhor = None
+        melhor_dist = 3  # tolerância máxima absoluta
+        for k, c in contratos_idx.items():
+            if k in achados_set:
+                continue
+            k_clean = k.lstrip('0')
+            if not k_clean:
+                continue
+            # Diferença máxima de 2 dígitos entre os comprimentos
+            diff = abs(len(k_clean) - len(n_clean))
+            if diff > 2 or diff == 0:
+                # diff == 0 já tratado pelas passadas anteriores; aqui só queremos
+                # números com tamanhos DIFERENTES (a Hamming passada cobre os iguais)
+                continue
+            # Modo "n é prefixo/sufixo de k" — o mais comum quando a procuração
+            # cortou dígitos
+            if n_clean in k_clean or k_clean in n_clean:
+                if diff < melhor_dist:
+                    melhor_dist = diff
+                    melhor = (k, c)
+        if melhor:
+            k, c = melhor
+            c_marcado = dict(c, _match_substring=n, _match_dist_extra=melhor_dist)
+            achados.append(c_marcado)
+            achados_set.add(k)
+
     return achados
 
 
@@ -215,13 +255,14 @@ def auditar_procuracoes_vs_hiscon(contratos_hiscon: List[Dict],
 
     casados_exato = []
     casados_fuzzy = []
+    casados_substring = []  # diferença de tamanho (Patch A — caso VILSON/BANRISUL)
     sem_match_proc = []
 
     for n in nums_proc:
         if n in nums_hiscon_banco:
             casados_exato.append(n)
             continue
-        # tenta fuzzy
+        # tenta fuzzy de Hamming (mesmo tamanho)
         melhor = None
         melhor_dist = 2  # tolerância 1
         for h in nums_hiscon_banco:
@@ -235,10 +276,33 @@ def auditar_procuracoes_vs_hiscon(contratos_hiscon: List[Dict],
                 melhor = h
         if melhor and melhor_dist <= 1:
             casados_fuzzy.append((n, melhor, melhor_dist))
-        else:
-            sem_match_proc.append(n)
+            continue
+        # tenta SUBSTRING/SUFIXO com diferença de tamanho (Patch A)
+        n_clean = n.lstrip('0')
+        if len(n_clean) >= 5:
+            melhor_sub = None
+            melhor_diff = 3
+            for h in nums_hiscon_banco:
+                if h in casados_exato:
+                    continue
+                h_clean = h.lstrip('0')
+                if not h_clean:
+                    continue
+                diff = abs(len(h_clean) - len(n_clean))
+                if diff == 0 or diff > 2:
+                    continue
+                if n_clean in h_clean or h_clean in n_clean:
+                    if diff < melhor_diff:
+                        melhor_diff = diff
+                        melhor_sub = h
+            if melhor_sub:
+                casados_substring.append((n, melhor_sub, melhor_diff))
+                continue
+        sem_match_proc.append(n)
 
-    casados_total = set(casados_exato) | {h for (_, h, _) in casados_fuzzy}
+    casados_total = (set(casados_exato)
+                     | {h for (_, h, _) in casados_fuzzy}
+                     | {h for (_, h, _) in casados_substring})
     nao_referidos = [h for h in nums_hiscon_banco if h not in casados_total]
 
     # Heurística de SUSPEITA: contrato no HISCON cujo número/data está MUITO
@@ -304,6 +368,17 @@ def auditar_procuracoes_vs_hiscon(contratos_hiscon: List[Dict],
             f'dígito). PROVÁVEL TYPO no nome do arquivo da procuração — '
             f'CONFIRMAR antes do protocolo.'
         )
+    for proc, hisc, diff in casados_substring:
+        alertas.append(
+            f'🚨 SUBSTRING MATCH (tamanho diferente): procuração com número '
+            f'{proc!r} foi vinculada ao contrato {hisc!r} do HISCON com '
+            f'diferença de {diff} dígito(s). Isso indica que o número da '
+            f'procuração pode estar TRUNCADO ou ter DÍGITO A MAIS/MENOS '
+            f'(caso paradigma VILSON/BANRISUL: procuração ...917305, HISCON '
+            f'...9173052). PARAR e CONFERIR o número correto no contrato '
+            f'físico ou na CCB antes do protocolo. Inicial gerada usando o '
+            f'match fuzzy mas NÃO PROTOCOLE sem revisão manual.'
+        )
     for n in sem_match_proc:
         alertas.append(
             f'🚨 PROCURAÇÃO SEM CONTRATO: número {n!r} (do nome do arquivo de '
@@ -332,6 +407,7 @@ def auditar_procuracoes_vs_hiscon(contratos_hiscon: List[Dict],
     return {
         'casados_exato': casados_exato,
         'casados_fuzzy': casados_fuzzy,
+        'casados_substring': casados_substring,
         'sem_match_no_hiscon': sem_match_proc,
         'no_hiscon_sem_procuracao': nao_referidos,
         'suspeitos': suspeitos,
@@ -468,6 +544,89 @@ def formatar_contrato_para_template(c: Dict) -> Dict:
         'tipo_origem': c.get('tipo_origem'),
         'motivo_exclusao': c.get('motivo_exclusao'),
     }
+
+
+# ============================================================================
+# Patch C — Validador pré-geração (2026-05-16)
+# ----------------------------------------------------------------------------
+# Caso paradigma: VILSON DA CRUZ BRASIL / BANRISUL — contrato 917305 da
+# procuração não casava no HISCON (era 9173052). O fallback `permitir_contrato_
+# virtual` gerou inicial com R$ 0,00 e `[A CONFIRMAR — pendente HISCON]`.
+# Esta validação ABORTA antes da geração se qualquer dado essencial estiver
+# faltando, zerado ou em estado de placeholder.
+# ============================================================================
+
+class DadosObrigatoriosFaltandoError(RuntimeError):
+    """Levantada quando um contrato a impugnar está incompleto e a inicial
+    não pode ser gerada com responsabilidade."""
+    def __init__(self, erros: List[str]):
+        self.erros = erros
+        msg = (
+            'Inicial NÃO PODE ser gerada — dados obrigatórios ausentes:\n'
+            + '\n'.join(f'  • {e}' for e in erros)
+            + '\n\nAÇÃO: localizar o contrato correto no HISCON, conferir o '
+              'número da procuração com o cliente, ou suspender a pasta até '
+              'esclarecer. NUNCA usar fallbacks fictícios (R$ 50,00, 84 '
+              'parcelas, "[A CONFIRMAR]") como contorno.'
+        )
+        super().__init__(msg)
+
+
+class ProcuracaoSemContratoError(RuntimeError):
+    """Levantada quando nenhum contrato do HISCON casou com os números das
+    procurações (mesmo após Hamming + lstrip + substring). Substitui o modo
+    `permitir_contrato_virtual` removido em 2026-05-16."""
+    pass
+
+
+def validar_contratos_obrigatorios(contratos_fmt: List[Dict]) -> None:
+    """Valida que todos os contratos têm dados mínimos para gerar inicial.
+
+    Aborta com DadosObrigatoriosFaltandoError listando o que faltou.
+
+    Critérios (cada falha lista o contrato afetado):
+      - valor_parcela_float > 0
+      - qtd_parcelas > 0 (e ≤ 96, sanidade)
+      - competencia_inicio_str no formato 'MM/AAAA'
+      - data_inclusao_str preenchido (sem '[A CONFIRMAR]')
+      - valor_emprestado_float > 0 (apenas alerta se ausente — alguns templates
+        permitem omissão quando "Valor pago" é o relevante)
+      - numero não vazio
+
+    Caso paradigma: VILSON / BANRISUL (2026-05-16) — `valor_parcela_float=0.0`,
+    `data_inclusao_str='[A CONFIRMAR — pendente HISCON]'`, gerados pelo modo
+    `permitir_contrato_virtual` (depois removido pelo Patch B).
+    """
+    if not contratos_fmt:
+        raise DadosObrigatoriosFaltandoError(
+            ['Lista de contratos a impugnar está vazia.']
+        )
+    erros: List[str] = []
+    for i, c in enumerate(contratos_fmt, 1):
+        prefix = f'Contrato {i} (nº {c.get("numero") or "?"})'
+        # numero
+        if not c.get('numero'):
+            erros.append(f'{prefix}: número do contrato ausente.')
+        # valor_parcela
+        vp = c.get('valor_parcela_float')
+        if vp is None or vp <= 0:
+            erros.append(f'{prefix}: valor_parcela inválido ({vp!r}).')
+        # qtd_parcelas
+        qtd = c.get('qtd_parcelas')
+        if not qtd or qtd <= 0:
+            erros.append(f'{prefix}: qtd_parcelas inválido ({qtd!r}).')
+        elif qtd > 96:
+            erros.append(f'{prefix}: qtd_parcelas suspeito ({qtd} > 96).')
+        # competencia_inicio
+        ci = c.get('competencia_inicio_str') or ''
+        if not re.match(r'^\d{2}/\d{4}$', ci):
+            erros.append(f'{prefix}: competência início inválida ({ci!r}).')
+        # data_inclusao
+        di = c.get('data_inclusao_str') or ''
+        if not di or '[A CONFIRMAR' in di or 'pendente' in di.lower():
+            erros.append(f'{prefix}: data_inclusao ausente ou placeholder ({di!r}).')
+    if erros:
+        raise DadosObrigatoriosFaltandoError(erros)
 
 
 if __name__ == '__main__':

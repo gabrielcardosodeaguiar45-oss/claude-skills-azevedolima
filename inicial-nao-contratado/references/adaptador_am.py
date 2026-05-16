@@ -234,7 +234,16 @@ def adaptar_dados_para_am(dados_ba: Dict, hiscre: Dict, autora: Dict,
         '{{data_do_primeiro_desconto}}': contrato.get('competencia_inicio_str', ''),
         '{{total_de_parcelas}}': str(contrato.get('qtd_parcelas') or ''),
         '{{valor_da_parcela}}': contrato.get('valor_parcela_str', ''),
-        '{{valor_emprestado_do_emprestimo}}': contrato.get('valor_emprestado_str', ''),
+        # Patch 2026-05-16 (caso PEDRO/PAN refinanciamento): alguns bancos
+        # zeram `valor_emprestado` e colocam o valor em `valor_liberado`
+        # (típico de refinanciamento). Para a inicial, sempre usar o valor
+        # não-zero entre os dois — assim não cai em "R$ 0,00".
+        '{{valor_emprestado_do_emprestimo}}': (
+            contrato.get('valor_emprestado_str')
+            if (contrato.get('valor_emprestado_float') or 0) > 0
+            else (contrato.get('valor_liberado_str')
+                  or contrato.get('valor_emprestado_str', ''))
+        ),
         '{{data_da_inclusão}}': data_inclusao,
         # Valor causa
         '{{valor_final_da_causa}}': f'{valor_causa:,.2f}'.replace(',', '#').replace('.', ',').replace('#', '.'),

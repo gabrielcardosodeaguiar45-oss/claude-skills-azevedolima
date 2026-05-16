@@ -216,19 +216,42 @@ def calcular_valores(caso):
         descontos_corrente = descontos
     caso["contrato"]["descontos_filtrados"] = descontos_corrente
 
-    # REGRA 1 — valor liquido = base - total comprometido
-    valor_liquido = calcular_valor_liquido(
-        hiscon["base_calculo"], hiscon["total_comprometido"]
-    )
+    # REGRA 1 (revisada 2026-05-16) — valor líquido = última competência
+    # paga "Origem: Maciça" do HISCRE. Antes era `base - total_comprometido`
+    # do HISCON (paradigma BENEDITA original), mas a regra unificada do
+    # escritório passou a ser HISCRE (mesma fonte usada pelo NC). Caso
+    # paradigma: PEDRO 2026-05-16 — NC mostrava R$ 970,00 (HISCRE) e
+    # RMC mostrava R$ 891,70 (HISCON-comprometido); operador determinou
+    # que SEMPRE deve ser HISCRE.
+    valor_liquido = None
+    hiscre_path = caso.get("hiscre_path") or hiscon.get("_hiscre_path")
+    if hiscre_path:
+        try:
+            import sys as _sys
+            _nc_refs = r"C:/Users/gabri/.claude/skills/inicial-nao-contratado/references"
+            if _nc_refs not in _sys.path:
+                _sys.path.insert(0, _nc_refs)
+            from extrator_hiscre import parse_hiscre  # type: ignore
+            _h = parse_hiscre(hiscre_path)
+            if _h and _h.get("valor_liquido"):
+                valor_liquido = float(_h["valor_liquido"])
+        except Exception:
+            pass
+    if valor_liquido is None and caso["beneficio"].get("valor_liquido_hiscre"):
+        valor_liquido = float(caso["beneficio"]["valor_liquido_hiscre"])
+    if valor_liquido is None:
+        # Fallback antigo (paradigma BENEDITA): HISCON base − comprometido
+        valor_liquido = calcular_valor_liquido(
+            hiscon["base_calculo"], hiscon["total_comprometido"]
+        )
 
-    # Prescricao 5 anos
-    marco = caso.get("marco_prescricao_mes_ano")  # tupla (mes, ano) ou None
-    descontos_prescricao = [
-        (c, v) for c, v in descontos_corrente
-        if dentro_prescricao_quinquenal(c, marco)
-    ]
-    soma_5anos = sum(v for _, v in descontos_prescricao)
-    valor_dobro = soma_5anos * 2
+    # TRATO SUCESSIVO (correção 2026-05-16): em descontos mensais consecutivos,
+    # o prazo prescricional flui do ÚLTIMO desconto (não do primeiro). NÃO
+    # aplicamos prescrição retroativa — TODAS as parcelas históricas entram
+    # no dobro. Caso paradigma VILSON / BANRISUL 2026-05-16.
+    descontos_impugnados = list(descontos_corrente)
+    soma_total = sum(v for _, v in descontos_impugnados)
+    valor_dobro = soma_total * 2
 
     # Danos morais e temporais (padrao escritorio)
     dano_moral = caso.get("dano_moral", 10000.00)
@@ -239,13 +262,15 @@ def calcular_valores(caso):
         "valor_liquido": valor_liquido,
         "valor_parcela_atual": descontos_corrente[0][1] if descontos_corrente else 0.0,
         "total_parcelas_historico": len(descontos_corrente),
-        "total_parcelas_5anos": len(descontos_prescricao),
-        "soma_5anos": soma_5anos,
+        "total_parcelas_5anos": len(descontos_impugnados),  # = todas (trato sucessivo)
+        "soma_5anos": soma_total,  # = todas (trato sucessivo)
+        "soma_total": soma_total,
         "valor_dobro": valor_dobro,
         "dano_moral": dano_moral,
         "dano_temporal": dano_temporal,
         "valor_causa": valor_causa,
-        "descontos_prescricao_set": {c for c, _ in descontos_prescricao},
+        # set agora cobre TODAS as competências (visual da planilha)
+        "descontos_prescricao_set": {c for c, _ in descontos_impugnados},
     }
     return caso["calculo"]
 
@@ -481,12 +506,123 @@ def gerar_relatorio_pendencias(caso, destino_relatorio):
 #   PIPELINE COMPLETO
 # ============================================================
 
+class DadosObrigatoriosRMCFaltandoError(RuntimeError):
+    """Levantada quando o `caso` RMC/RCC chega ao pipeline com campos
+    essenciais ausentes/zerados. Paridade com a barreira pre-geração da
+    skill `inicial-nao-contratado` (paradigma VILSON / BANRISUL 2026-05-16):
+    sem dados reais, NÃO gera inicial e NÃO usa fallbacks fictícios."""
+    def __init__(self, erros):
+        self.erros = list(erros)
+        super().__init__(
+            'Inicial RMC/RCC NÃO PODE ser gerada — dados obrigatórios ausentes:\n'
+            + '\n'.join(f'  • {e}' for e in self.erros)
+            + '\n\nAÇÃO: conferir HISCON/HISCRE da autora, número de contrato na '
+              'procuração, e completar o dict `caso` antes de chamar '
+              '`renderizar_caso`. NUNCA usar fallbacks fictícios (R$ 50,00, '
+              '84 parcelas, "[A CONFIRMAR]") como contorno.'
+        )
+
+
+def _validar_caso_pre_geracao(caso):
+    """Pre-validator do dict `caso` antes de qualquer geração.
+
+    Critérios (cada falha vai à lista, todas acumuladas):
+      * autora.nome, autora.cpf preenchidos
+      * banco.nome_curto e banco.resto_qualificacao preenchidos
+      * beneficio.nb preenchido
+      * contrato.numero preenchido
+      * contrato.data_inclusao preenchida e válida (sem "[A CONFIRMAR")
+      * contrato.descontos_hiscon não vazio e sem zeros
+      * tese ∈ {"RMC", "RCC"}
+
+    Levanta DadosObrigatoriosRMCFaltandoError com a lista consolidada.
+    """
+    import re as _re
+    erros = []
+    a = caso.get("autora") or {}
+    if not a.get("nome"):
+        erros.append("autora.nome ausente.")
+    if not a.get("cpf"):
+        erros.append("autora.cpf ausente.")
+    b = caso.get("banco") or {}
+    if not b.get("nome_curto"):
+        erros.append("banco.nome_curto ausente.")
+    if not b.get("resto_qualificacao"):
+        erros.append("banco.resto_qualificacao ausente.")
+    bn = caso.get("beneficio") or {}
+    if not bn.get("nb"):
+        erros.append("beneficio.nb ausente.")
+    c = caso.get("contrato") or {}
+    if not c.get("numero"):
+        erros.append("contrato.numero ausente.")
+    di = c.get("data_inclusao") or ""
+    if not di or "[A CONFIRMAR" in str(di) or "pendente" in str(di).lower():
+        erros.append(f"contrato.data_inclusao ausente/placeholder ({di!r}).")
+    else:
+        # Validar formato dd/mm/aaaa ou mm/aaaa
+        if not _re.match(r"^\d{1,2}/\d{2,4}(?:/\d{2,4})?$", str(di).strip()):
+            erros.append(f"contrato.data_inclusao em formato inválido ({di!r}).")
+    descontos = c.get("descontos_hiscon") or []
+    if not descontos:
+        erros.append("contrato.descontos_hiscon vazio — sem descontos no HISCRE/HISCON.")
+    else:
+        # Cada item deve ser (competencia, valor) com valor > 0
+        zerados = [comp for comp, val in descontos if not val or float(val) <= 0]
+        if zerados:
+            erros.append(
+                f"contrato.descontos_hiscon contém {len(zerados)} desconto(s) "
+                f"zerado(s): {zerados[:3]}{'...' if len(zerados) > 3 else ''}."
+            )
+    tese = caso.get("tese")
+    if tese not in ("RMC", "RCC"):
+        erros.append(f"tese inválida ({tese!r}); esperado 'RMC' ou 'RCC'.")
+    perfil_uf = caso.get("perfil")
+    if not perfil_uf:
+        erros.append("perfil (perfil_juridicos) ausente.")
+    if erros:
+        raise DadosObrigatoriosRMCFaltandoError(erros)
+
+
 def renderizar_caso(caso, pasta_saida):
     """Pipeline completo: calcula, gera inicial, planilha e relatorio."""
     os.makedirs(pasta_saida, exist_ok=True)
 
+    # 0. PRE-VALIDATOR (2026-05-16): aborta antes de gerar nada se faltar
+    # dado obrigatório. Evita inicial com R$ 0,00 ou placeholder remanescente.
+    _validar_caso_pre_geracao(caso)
+
     # 1. Calculos
     calcular_valores(caso)
+
+    # 1-bis. POST-CALCULO VALIDATOR (2026-05-16): se após filtrar descontos
+    # pelo contrato corrente sobrou 0 (data_inclusao filtra tudo), ou se soma
+    # ficou zerada, abortar. Cobre o caso silencioso onde HISCRE traz descontos
+    # mas todos são de data anterior à data_inclusao informada (erro humano
+    # típico ao montar `caso["contrato"]["data_inclusao"]`).
+    _calc = caso["calculo"]
+    _erros_calc = []
+    if (_calc.get("total_parcelas_historico") or 0) <= 0:
+        _erros_calc.append(
+            f"total_parcelas_historico = {_calc.get('total_parcelas_historico')} — "
+            "filtro do contrato corrente eliminou todos os descontos. Conferir "
+            "caso['contrato']['data_inclusao']."
+        )
+    if (_calc.get("soma_total") or 0) <= 0:
+        _erros_calc.append(
+            f"soma_total = R$ {_calc.get('soma_total'):.2f} — sem valor a impugnar."
+        )
+    if (_calc.get("valor_parcela_atual") or 0) <= 0:
+        _erros_calc.append(
+            f"valor_parcela_atual = R$ {_calc.get('valor_parcela_atual'):.2f} — "
+            "última parcela zerada."
+        )
+    if (_calc.get("valor_liquido") or 0) <= 0:
+        _erros_calc.append(
+            f"valor_liquido = R$ {_calc.get('valor_liquido'):.2f} — renda zerada "
+            "(HISCRE/HISCON sem valor). Conferir caso['hiscre_path']."
+        )
+    if _erros_calc:
+        raise DadosObrigatoriosRMCFaltandoError(_erros_calc)
 
     # 2. Selecionar template baseado em UF + tese + banco
     perfil_uf = caso["perfil"]
@@ -539,6 +675,29 @@ def renderizar_caso(caso, pasta_saida):
                             _residuais.append(_ph)
     if _residuais:
         print(f"  ⚠ placeholders residuais em {os.path.basename(destino_docx)}: {_residuais}")
+
+    # 7. VALIDADOR PÓS-DOCX (paridade com inicial-nao-contratado, 2026-05-16):
+    # detecta R$ 0,00, [A CONFIRMAR, "pendente HISCON", competências/datas
+    # vazias entre vírgulas. Se algum dispara, renomeia para
+    # *_FALHOU_VALIDACAO_FINAL.docx e levanta DocxValidacaoFinalError.
+    # Importa via importlib.util para evitar colisão com `helpers_docx`
+    # local da skill (que tem outras funções, não tem validar_docx_gerado).
+    try:
+        import importlib.util as _ilu
+        _nc_helpers_path = r"C:/Users/gabri/.claude/skills/inicial-nao-contratado/references/helpers_docx.py"
+        if os.path.exists(_nc_helpers_path):
+            _spec = _ilu.spec_from_file_location("_nc_helpers_docx", _nc_helpers_path)
+            _mod = _ilu.module_from_spec(_spec)
+            _spec.loader.exec_module(_mod)
+            if hasattr(_mod, 'validar_docx_gerado'):
+                _mod.validar_docx_gerado(destino_docx, abortar=True)
+    except Exception as _e:
+        # Re-levanta se for o erro de validação (queremos travar mesmo)
+        tipo_nome = type(_e).__name__
+        if tipo_nome == 'DocxValidacaoFinalError':
+            raise
+        # Outros erros: registra mas não bloqueia
+        print(f"  ⚠ validador pós-DOCX não rodou: {tipo_nome}: {str(_e)[:120]}")
 
     return {
         "inicial": destino_docx,

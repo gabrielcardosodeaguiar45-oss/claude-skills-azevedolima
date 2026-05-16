@@ -29,6 +29,76 @@ from docx import Document
 TEMPLATE = r'C:\Users\gabri\OneDrive\Documentos\Obsidian Vault\Modelos\IniciaisBradesco\_templates\inicial-pg-eletron.docx'
 
 
+class DadosObrigatoriosBradescoFaltandoError(RuntimeError):
+    """Levantada quando o dict `dados` Bradesco chega ao pipeline com campos
+    essenciais ausentes/zerados. Paridade com `inicial-nao-contratado`
+    (paradigma VILSON / BANRISUL 2026-05-16): sem dados reais, NÃO gera
+    inicial e NÃO usa fallbacks fictícios."""
+    def __init__(self, erros):
+        self.erros = list(erros)
+        super().__init__(
+            'Inicial Bradesco NÃO PODE ser gerada — dados obrigatórios ausentes:\n'
+            + '\n'.join(f'  • {e}' for e in self.erros)
+            + '\n\nAÇÃO: conferir extrato bancário, renda do HISCRE, terceiro réu '
+              'e completar `dados` antes de chamar `gerar_inicial_pg_eletron`. '
+              'NUNCA usar fallbacks fictícios (R$ 0,00 ou placeholder) como contorno.'
+        )
+
+
+def _validar_dados_pre_geracao(dados: dict):
+    """Pre-validator do dict `dados` Bradesco antes de aplicar template.
+
+    Critérios (cada falha vai à lista, todas acumuladas):
+      * nome_completo e cpf preenchidos
+      * valor_remuneração não-zerado
+      * total_descontos, dobro_descontos, valor_causa não-zerados
+      * inicio_desconto e fim_desconto preenchidos
+      * rubrica_curta_caps preenchida
+      * nome_terceiro e cnpj_terceiro preenchidos
+
+    Levanta DadosObrigatoriosBradescoFaltandoError com a lista consolidada.
+    """
+    erros = []
+    obrigatorios_str = [
+        'nome_completo', 'cpf', 'rubrica_curta_caps',
+        'inicio_desconto', 'fim_desconto',
+        'nome_terceiro', 'cnpj_terceiro',
+    ]
+    for k in obrigatorios_str:
+        v = (dados.get(k) or '').strip()
+        if not v:
+            erros.append(f'{k} ausente.')
+
+    obrigatorios_valor = [
+        'total_descontos', 'dobro_descontos', 'valor_causa',
+        'dano_moral_total', 'valor_remuneração',
+    ]
+    for k in obrigatorios_valor:
+        v = (dados.get(k) or '').strip()
+        if not v:
+            erros.append(f'{k} ausente.')
+            continue
+        # Normaliza para detectar 0,00
+        bare = v.replace('R$', '').replace(' ', '').replace('.', '').replace(',', '.')
+        try:
+            num = float(bare)
+            if num <= 0:
+                erros.append(f'{k} zerado ({v!r}).')
+        except ValueError:
+            erros.append(f'{k} não é numérico ({v!r}).')
+
+    # CPF formato 000.000.000-00 ou 11 dígitos
+    import re as _re
+    cpf = (dados.get('cpf') or '').strip()
+    if cpf:
+        digitos = _re.sub(r'\D', '', cpf)
+        if len(digitos) != 11:
+            erros.append(f'cpf com {len(digitos)} dígitos (esperado 11): {cpf!r}.')
+
+    if erros:
+        raise DadosObrigatoriosBradescoFaltandoError(erros)
+
+
 def gerar_inicial_pg_eletron(
     pasta_destino: str,
     nome_arquivo_base: str,
@@ -42,6 +112,10 @@ def gerar_inicial_pg_eletron(
     pendencias_extras: list = None,
 ):
     """Gera inicial + relatório paralelo. Retorna (caminho_docx, caminho_relatorio, alertas_auditoria)."""
+    # 0. PRE-VALIDATOR (2026-05-16): aborta antes de gerar nada se faltar
+    # campo obrigatório ou se algum valor monetário estiver zerado.
+    _validar_dados_pre_geracao(dados)
+
     docx_path = os.path.join(pasta_destino, nome_arquivo_base + '_v1.docx')
     relatorio_path = os.path.join(pasta_destino, f'_RELATORIO_PENDENCIAS_{terceiro_slug}_v1.docx')
 

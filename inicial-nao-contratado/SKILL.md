@@ -107,38 +107,66 @@ Templates `.docx` ficam em
    bloco fático. Replicar lógica do AL (`_preencher_bloco_fatico` caminho B
    1banco×N contratos) quando aparecer caso real.
 
-## Contratos VIRTUAIS (procuração tem, HISCON não tem) — regra 2026-05-13
+## Contratos VIRTUAIS — BANIDOS em 2026-05-16
 
-Quando o contrato consta na procuração mas NÃO está no HISCON atual, o
-escritório quer **gerar a inicial mesmo assim**, com valores estimados, e
-marcar pendência de "juntar HISCON do período do empréstimo".
+> **Modo `permitir_contrato_virtual` foi REMOVIDO** após o caso paradigma
+> VILSON DA CRUZ BRASIL / BANRISUL (2026-05-16). Não há mais como gerar inicial
+> sem contrato real no HISCON.
 
-Use `permitir_contrato_virtual=True` ao chamar `gerar_inicial_padrao`:
+### Histórico do incidente
+O modo "virtual" foi introduzido em 2026-05-13 (caso EDINA Bradesco) para gerar
+iniciais com **valores estimados** quando o contrato constava na procuração mas
+não no HISCON. Os defaults eram `valor_parcela=0.0`, `qtd_parcelas=84`,
+`data_inclusao='[A CONFIRMAR — pendente HISCON]'`. O operador deveria atualizar
+os valores antes do protocolo via relatório de pendência.
 
-```python
-gerar_inicial_padrao(
-    perfil_chave='AM_ESTADUAL',
-    pasta_cliente=...,
-    numeros_contrato_explicitos=['123505288054'],   # contrato virtual
-    autora=...,
-    permitir_contrato_virtual=True,
-    contrato_virtual_overrides={
-        'data_inclusao':      '01/01/2020',          # estimado (período HISCRE)
-        'competencia_inicio': '01/2020',
-        'qtd_parcelas':       84,
-        'valor_parcela':      56.18,                 # média dos contratos do banco no JSON
-        'valor_emprestado':   2500.00,
-    },
-)
-```
+**Problema descoberto em 2026-05-16:** no caso VILSON/BANRISUL, a procuração
+trazia o contrato `000000000000917305` e o HISCON tinha `00000000000009173052`
+(1 dígito a mais no final). O matching fuzzy original rejeitava tamanhos
+diferentes — então o modo virtual entrou silenciosamente. A inicial saiu com
+`R$ 0,00 (zero reais)` e `[A CONFIRMAR – pendente HISCON]`, enquanto o
+cálculo XLSX saiu com `R$ 50,00 × 29 meses` fictícios (fallback do runner).
+Nenhuma camada abortou.
 
-A skill cria um contrato VIRTUAL com `_virtual: True` + `_pendencia_hiscon: True`
-e segue a geração normal. **Gerar relatório paralelo de pendência** informando
-o operador para juntar o HISCON real e atualizar os valores antes do protocolo.
+### Patches aplicados (2026-05-16) — defesa em profundidade
 
-Caso paradigma: EDINA Bradesco (2026-05-13) — 5 procurações, 3 contratos no
-HISCON (geradas normais) + 2 virtuais (geradas com estimativa = média dos
-3 reais = R$ 56,18; valor causa estimado R$ 26.853,96).
+Banimento de fallbacks fictícios + match HISCON tolerante a tamanho:
+
+| Patch | Onde | O que faz |
+|---|---|---|
+| **A** | `extrator_hiscon.py:filtrar_contratos_por_numero` | 4ª passada de match: aceita SUBSTRING após `lstrip('0')` com diferença de até 2 dígitos no comprimento. Gera alerta CRÍTICO obrigando conferência manual. |
+| **B** | `_pipeline_caso_am.py`, `_pipeline_generico.py` | `permitir_contrato_virtual` e `contrato_virtual_overrides` agora **levantam erro** se passados. Sem fallbacks fictícios. Se contrato não casa → `ProcuracaoSemContratoError`. |
+| **C** | `extrator_hiscon.py:validar_contratos_obrigatorios` | Chamada nos 3 pipelines (AM/BA/AL) logo após `formatar_contrato_para_template`. Aborta se algum contrato tem `valor_parcela<=0`, `qtd_parcelas<=0`, competência vazia ou `data_inclusao='[A CONFIRMAR]'`. |
+| **D** | `helpers_docx.py:validar_docx_gerado` | Chamada no fim de cada pipeline. Varre o DOCX procurando `R$ 0,00`, `[A CONFIRMAR`, competências/datas vazias entre vírgulas. Renomeia para `*_FALHOU_VALIDACAO_FINAL.docx`. |
+| **E** | `_common/calculadora_indebito.py:_validar_contratos_para_calculo` e `_gerar_calculo_nc.py` | Chamada antes de gerar XLSX. Aborta se valor/qtd/competência são fictícios. Banimento explícito dos defaults R$ 50,00 / 84 parcelas / "01/2021". |
+
+HISCRE — última competência + auto-alerta (caso paradigma VILSON, §45 da inicial saiu com renda R$ 689,92 de 2020 em vez de R$ 988,43 de 01/2026):
+
+| Patch | Onde | O que faz |
+|---|---|---|
+| **HISCRE-1** | `extrator_hiscre.py:parse_hiscre` | Varre TODAS as páginas do HISCRE (era só p.1). Pega competência mais recente com Origem "Maciça", ignorando: (a) cabeçalho `Compet. Inicial:/Final:` repetido, (b) pagamentos `PAB` avulsos, (c) meses 04 e 05 (13º antecipado). |
+| **HISCRE-2** | `extrator_hiscre.py` campo `alertas_qualidade` | Auto-alerta CRÍTICO se: competência > 12 meses atrás · valor líquido None · valor líquido > MR × 1,5 (13º capturado). |
+| **HISCRE-3** | 3 pipelines (AM/BA/AL) | Propagam `hiscre['alertas_qualidade']` para o relatório paralelo / dict `alertas`. Operador vê o alerta sem precisar checar manualmente. |
+
+Cálculo respeita `competencia_fim` (caso paradigma: contrato Banrisul portado 26/08/2025 mas calculator projetava até 05/2026, somando 10 parcelas inexistentes):
+
+| Patch | Onde | O que faz |
+|---|---|---|
+| **CALC-1** | `_common/calculadora_indebito.py` | Já respeitava `competencia_fim_str` desde antes. Agora também valida pós-cálculo: se alguma parcela > `data_exclusao` do contrato, levanta `CalculoIndebitoInvalidoError`. |
+| **CALC-2** | `CLAUDE/_gerar_calculo_nc.py` | Adicionados parâmetros `competencia_fim` + `situacao`. Aviso stderr quando situação=Excluído/Encerrado sem `competencia_fim`. |
+| **CALC-3** | `_validar_consistencia_competencia_fim` | Detecta inconsistência situação×competencia_fim antes de gerar XLSX; avisa via stderr para o caller. |
+
+### Quando o contrato da procuração não casa no HISCON
+
+A skill agora **aborta** com `ProcuracaoSemContratoError`. Ações possíveis:
+1. **Conferir o número na CCB/contrato físico** — pode ser typo na procuração.
+2. **Refazer a procuração** com o número correto do HISCON.
+3. **Suspender a pasta** até esclarecer. NUNCA gerar inicial sem contrato real.
+
+Se o número da procuração é **parecido** com algum do HISCON (diferença de
+1–2 dígitos no comprimento, ex.: `917305` vs `9173052`), o Patch A faz match
+automático com `_match_substring`, mas levanta alerta CRÍTICO obrigando
+revisão manual antes do protocolo.
 
 ## Regras críticas (não esquecer)
 

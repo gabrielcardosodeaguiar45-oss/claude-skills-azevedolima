@@ -629,7 +629,109 @@ def fase_f_montar_estrutura(pasta_cliente: str,
                 relatorio.setdefault("calculos_erros", []).append(
                     f"{nome_pasta_acao}: {type(_e_calc).__name__}: {_e_calc}")
 
+    # ========================================================================
+    # Validação final (2026-05-16, caso paradigma VILSON 2ª procuração Banrisul):
+    # roda o auditor de procurações órfãs sobre a estrutura recém-criada e
+    # FALHA a fase F se sobraram procurações no PDF consolidado sem pasta-banco
+    # correspondente. Garante que nenhuma procuração seja silenciosamente
+    # marcada como "pendência" sem virar pasta.
+    # ========================================================================
+    try:
+        from auditor_procuracoes_orfas import auditar_cliente  # type: ignore
+        rel_audit = auditar_cliente(str(base))
+        if 'erro' not in rel_audit:
+            orfas = rel_audit.get('orfas') or []
+            if orfas:
+                detalhes = '\n'.join(
+                    f'  - pág {o["pagina"]}: {o["banco"]} contrato `{o["contrato"]}`'
+                    for o in orfas
+                )
+                relatorio.setdefault('alertas', []).append({
+                    'categoria': 'Procuração / Auditoria pós-build',
+                    'pendencia': f'{len(orfas)} procuração(ões) ÓRFÃ(s)',
+                    'observacao': (
+                        f'PDF consolidado tem procurações que NÃO viraram '
+                        f'pasta-banco:\n{detalhes}\n\nAÇÃO: rodar fase F '
+                        f'novamente incluindo essas procurações OU criar '
+                        f'pastas-banco manualmente.'
+                    ),
+                    'status': 'CRÍTICO',
+                })
+                relatorio['procuracoes_orfas'] = orfas
+                # NÃO levanta exceção (fase F já criou parte das pastas).
+                # Mas registra no relatório de forma que o orquestrador VEJA.
+                # Para falha hard, ver `validar_completude_kit()` no main.
+            if rel_audit.get('paginas_sem_texto'):
+                relatorio.setdefault('alertas', []).append({
+                    'categoria': 'Procuração / OCR',
+                    'pendencia': f'{len(rel_audit["paginas_sem_texto"])} página(s) do PDF sem OCR válido',
+                    'observacao': f'Páginas: {rel_audit["paginas_sem_texto"]}. '
+                                  f'Auditoria não conseguiu confirmar essas páginas. '
+                                  f'Conferir manualmente.',
+                    'status': 'Pendente',
+                })
+    except ImportError:
+        # auditor não disponível — silencioso
+        pass
+    except Exception as e:
+        relatorio.setdefault('alertas', []).append({
+            'categoria': 'Procuração / Auditoria pós-build',
+            'pendencia': 'Falha ao rodar auditor',
+            'observacao': f'{type(e).__name__}: {e}',
+            'status': 'Pendente',
+        })
+
     return relatorio
+
+
+def validar_completude_kit(pasta_cliente: str) -> dict:
+    """Validação HARD pós-build do kit. Levanta `KitIncompletoError` se houver
+    procurações órfãs detectadas pelo auditor.
+
+    Diferente do registro no `relatorio['alertas']` (que é informativo),
+    esta função PARA o pipeline se a estrutura está incompleta. Chamar no
+    fim do `main()` antes de declarar o cliente como pronto.
+
+    Caso paradigma VILSON (2026-05-16): kit gerou pasta para 1 das 2
+    procurações Banrisul; a outra virou "pendência" no JSON e ninguém viu.
+    Esta função previne essa classe inteira de bugs.
+    """
+    try:
+        from auditor_procuracoes_orfas import auditar_cliente  # type: ignore
+    except ImportError:
+        return {'status': 'auditor-indisponivel', 'orfas': []}
+    rel = auditar_cliente(pasta_cliente)
+    if 'erro' in rel:
+        return {'status': 'erro-auditoria', 'detalhe': rel.get('erro')}
+    orfas = rel.get('orfas') or []
+    if orfas:
+        raise KitIncompletoError(orfas, pasta_cliente)
+    return {'status': 'completo', 'procuracoes_pdf': len(rel.get('procuracoes_pdf', []))}
+
+
+class KitIncompletoError(RuntimeError):
+    """Levantada quando o kit-juridico produziu uma estrutura incompleta —
+    procurações no PDF consolidado que não viraram pasta-banco.
+
+    O orquestrador (Claude/operador) deve incluir as procurações faltantes
+    na lista `procuracoes_extraidas` e rodar a fase F novamente.
+    """
+    def __init__(self, orfas, pasta_cliente):
+        self.orfas = list(orfas)
+        self.pasta_cliente = pasta_cliente
+        detalhes = '\n'.join(
+            f'  - pág {o["pagina"]}: {o["banco"]} contrato `{o["contrato"]}` '
+            f'(OCR bruto: `{o.get("contrato_bruto","")}`)'
+            for o in orfas
+        )
+        super().__init__(
+            f'KIT INCOMPLETO — {len(orfas)} procuração(ões) no PDF consolidado '
+            f'que NÃO viraram pasta-banco em {os.path.basename(pasta_cliente)}:\n'
+            + detalhes
+            + '\n\nAÇÃO: incluir essas procurações em `procuracoes_extraidas` '
+              'e rodar `fase_f_montar_estrutura` novamente, OU criar as '
+              'pastas-banco manualmente.'
+        )
 
 
 def _fatiar_pagina(pdf_origem: str, pag_num: int, destino: str):
@@ -1194,6 +1296,25 @@ def fase_k_salvar_estado_cliente(
         "alertas": alertas or [],
     })
     estado["historico_skills"] = historico
+
+    # === Escopo executado nesta rodada (2026-05-16, para o auditor
+    # distinguir órfã verdadeira de fora-de-escopo) ===
+    # Infere automaticamente das pastas_acao criadas. O auditor usa esse
+    # campo (com prioridade sobre auto-detecção física) para filtrar alertas.
+    escopo_set = set()
+    for pa in pastas_acao:
+        path_rel = (pa.get('path_relativo') or '').upper()
+        if 'NÃO CONTRATADO' in path_rel or 'NAO CONTRATADO' in path_rel:
+            escopo_set.add('NC')
+        if 'RMC' in path_rel and 'RCC' not in path_rel:
+            escopo_set.add('RMC')
+        if 'RCC' in path_rel:
+            escopo_set.add('RCC')
+        if 'BRADESCO' in path_rel:
+            escopo_set.add('BRADESCO')
+    # Acumula com escopos antigos (se o cliente já tinha sido processado)
+    escopo_anterior = set(estado.get('escopo_executado') or [])
+    estado['escopo_executado'] = sorted(escopo_set | escopo_anterior)
 
     # === Preservar campos de outras skills ===
     estado.setdefault("notificacoes_extrajudiciais", [])

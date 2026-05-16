@@ -27,7 +27,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from helpers_docx import substituir_in_run
 from extenso import extenso_moeda
-from extrator_hiscon import parse_hiscon, filtrar_contratos_por_numero, formatar_contrato_para_template
+from extrator_hiscon import (
+    parse_hiscon, filtrar_contratos_por_numero, formatar_contrato_para_template,
+    validar_contratos_obrigatorios, DadosObrigatoriosFaltandoError,
+    ProcuracaoSemContratoError,
+)
 from extrator_hiscre import parse_hiscre
 from extrator_calculo import parse_calculo, eh_idoso
 from extrator_procuracao import extrair_numeros_contrato_de_pasta
@@ -91,14 +95,72 @@ def gerar_data_extenso(d: datetime) -> str:
     return f'{d.day} de {meses[d.month - 1]} de {d.year}'
 
 
+def _auditar_procuracoes_orfas_inline(pasta_banco: str) -> List[str]:
+    """Roda o auditor de procurações órfãs (skill kit-juridico) e devolve
+    alertas para anexar ao pipeline. Tolerante a falhas de import — se a skill
+    não estiver disponível, devolve [] silenciosamente.
+
+    Olha 2 níveis acima de `pasta_banco` para encontrar a raiz do cliente
+    (estrutura: <cliente>/<tese>/<banco>/).
+    """
+    import sys as _sys
+    skill_dir = r'C:\Users\gabri\.claude\skills\kit-juridico\scripts'
+    if skill_dir not in _sys.path:
+        _sys.path.insert(0, skill_dir)
+    try:
+        from auditor_procuracoes_orfas import auditar_cliente  # type: ignore
+    except Exception:
+        return []
+    # Resolve raiz do cliente (sobe 2 níveis: banco → tese → cliente)
+    pasta_cliente = os.path.dirname(os.path.dirname(os.path.abspath(pasta_banco)))
+    # Confirma que existe um PDF de procurações no Kit
+    kit = os.path.join(pasta_cliente, '0. Kit')
+    if not os.path.isdir(kit):
+        return []
+    try:
+        rel = auditar_cliente(pasta_cliente)
+    except Exception as e:
+        return [f'⚠ Auditoria de procurações falhou: {type(e).__name__}: {e}']
+    if 'erro' in rel:
+        return []
+    msgs = []
+    for orfa in rel.get('orfas') or []:
+        msgs.append(
+            f'🚨 PROCURAÇÃO ÓRFÃ detectada (PDF consolidado tem, pasta-banco NÃO): '
+            f'pág {orfa["pagina"]} · banco {orfa["banco"]} · contrato '
+            f'`{orfa["contrato"]}` (bruto OCR: `{orfa.get("contrato_bruto","")}`). '
+            f'AÇÃO: criar pasta-banco correspondente e rodar inicial separada '
+            f'para esse contrato.'
+        )
+    for dup in rel.get('duplicatas_mesmo_banco') or []:
+        msgs.append(
+            f'⚠ Banco {dup["banco"]}: {dup["qtd_no_pdf"]} procuração(ões) no '
+            f'PDF mas só {dup["qtd_em_pastas"]} pasta(s) materializada(s). '
+            f'Contratos PDF: {dup["contratos_no_pdf"]} · Pastas: {dup["contratos_em_pastas"]}.'
+        )
+    return msgs
+
+
 def montar_dados_inicial_am(pasta_banco: str, autora: Dict, comarca: str,
                             procurador_chave: str = 'patrick',
                             representante_legal: Dict = None,
                             tipo_template: str = 'auto',
                             numeros_contrato_explicitos: Optional[List[str]] = None,
+                            banco_codigo_override: Optional[str] = None,
+                            # DEPRECATED (Patch B — 2026-05-16): banidos.
+                            # Aceitos apenas para compatibilidade com chamadores
+                            # antigos; se passados como True/dict, levantam erro.
                             permitir_contrato_virtual: bool = False,
-                            contrato_virtual_overrides: Optional[Dict] = None,
-                            banco_codigo_override: Optional[str] = None) -> Dict:
+                            contrato_virtual_overrides: Optional[Dict] = None) -> Dict:
+    # Patch B — banir fallbacks fictícios
+    if permitir_contrato_virtual or contrato_virtual_overrides:
+        raise ProcuracaoSemContratoError(
+            'permitir_contrato_virtual / contrato_virtual_overrides FORAM '
+            'BANIDOS em 2026-05-16 (caso paradigma VILSON/BANRISUL). Não há '
+            'mais como gerar inicial sem o contrato real no HISCON. AÇÃO: '
+            'remover esses parâmetros da chamada e garantir que a procuração '
+            'aponta para um contrato existente no HISCON.'
+        )
     """Monta o dicionário completo de dados para uma inicial AM.
 
     Args:
@@ -232,36 +294,25 @@ def montar_dados_inicial_am(pasta_banco: str, autora: Dict, comarca: str,
     contratos_brutos = filtrar_contratos_por_numero(
         contratos_do_banco, nums_filtro, fuzzy_dist=1)
     if not contratos_brutos:
-        if permitir_contrato_virtual:
-            # Contrato consta na procuração mas NÃO está no HISCON.
-            # Regra do escritório (2026-05-13): NÃO abortar. Gerar inicial
-            # com valores ESTIMADOS (via contrato_virtual_overrides) e marcar
-            # pendência para juntar HISCON do período do empréstimo.
-            ov = contrato_virtual_overrides or {}
-            contratos_brutos = [{
-                'numero': n,
-                'banco_codigo': candidato_banco or '???',
-                'banco_nome': candidato_banco or '?',
-                'situacao': ov.get('situacao', 'Ativo (estimado — pendente HISCON)'),
-                'origem_averbacao': ov.get('origem_averbacao', 'Averbação nova (estimada)'),
-                'data_inclusao': ov.get('data_inclusao', '[A CONFIRMAR — pendente HISCON]'),
-                'competencia_inicio': ov.get('competencia_inicio', ''),
-                'competencia_fim': ov.get('competencia_fim', ''),
-                'qtd_parcelas': ov.get('qtd_parcelas', 84),
-                'valor_parcela': ov.get('valor_parcela', 0.0),
-                'valor_emprestado': ov.get('valor_emprestado', 0.0),
-                '_virtual': True,
-                '_pendencia_hiscon': True,
-            } for n in nums_filtro]
-        else:
-            raise ProcuracaoSemFiltroError(
-                f'🚨 Nenhum contrato do HISCON casou com os números das procurações '
-                f'{nums_filtro} para o banco {candidato_banco}. CONFERIR. '
-                f'Para gerar inicial mesmo assim com pendência HISCON, passar '
-                f'`permitir_contrato_virtual=True`.'
-            )
+        # REGRA ABSOLUTA (Patch B — 2026-05-16): NUNCA gerar inicial sem
+        # contrato real no HISCON. O modo `permitir_contrato_virtual` foi
+        # removido após o caso paradigma VILSON/BANRISUL — gerava inicial
+        # com R$ 0,00 e cálculo com R$ 50,00 × N meses fictícios.
+        raise ProcuracaoSemContratoError(
+            f'🚨 Nenhum contrato do HISCON casou com os números das procurações '
+            f'{nums_filtro} para o banco {candidato_banco}. ABORTANDO sem '
+            f'gerar inicial. AÇÃO: conferir o número da procuração com o '
+            f'cliente/CCB, refazer procuração com o número correto do HISCON, '
+            f'ou suspender a pasta até esclarecer. A skill NÃO aceita mais '
+            f'`permitir_contrato_virtual` — fallbacks fictícios foram banidos.'
+        )
 
     contratos_fmt = [formatar_contrato_para_template(c) for c in contratos_brutos]
+
+    # Patch C — Validador pré-geração: aborta se algum contrato a impugnar
+    # estiver com valor zero, qtd inválida, competência vazia ou data com
+    # placeholder. Garante que NUNCA mais sai inicial com R$ 0,00 / [A CONFIRMAR].
+    validar_contratos_obrigatorios(contratos_fmt)
 
     # 3. PDF de cálculo (pode estar na pasta ou não)
     calc_path = (encontrar_pdf(pasta_banco, '10- cálculo') or
@@ -295,6 +346,17 @@ def montar_dados_inicial_am(pasta_banco: str, autora: Dict, comarca: str,
     divergencias = comparar_doc_vs_hiscre(autora, hiscre)
     autora_consolidada = consolidar_dados_autora(autora, hiscre)
 
+    # 5-bis. Propagar alertas de qualidade do HISCRE (Patch 2026-05-16,
+    # caso VILSON): competência muito antiga, valor líquido ausente, etc.
+    # Inicializa alertas se ainda não existe; concatena depois.
+    alertas_hiscre = (hiscre or {}).get('alertas_qualidade') or []
+
+    # 5-ter. Auditoria procurações vs pastas-banco (Patch 2026-05-16,
+    # caso VILSON 2ª procuração Banrisul): detecta procurações no PDF
+    # consolidado `0. Kit/Procurações.pdf` que NÃO viraram pasta-banco.
+    # Sintomas: cliente com N procurações Banrisul mas só 1 pasta criada.
+    alertas_procuracoes_orfas = _auditar_procuracoes_orfas_inline(pasta_banco)
+
     # 6. Identificar banco-réu canônico
     banco_nome_hiscon = contratos_brutos[0].get('banco_nome', '')
     banco_reu = resolver_banco(banco_nome_hiscon, 'AM')
@@ -313,7 +375,8 @@ def montar_dados_inicial_am(pasta_banco: str, autora: Dict, comarca: str,
     template_path = os.path.join(VAULT_TEMPLATES, template_nome)
 
     # Alertas
-    alertas = []
+    alertas = list(alertas_hiscre)  # propaga alertas qualidade HISCRE (Patch 2026-05-16)
+    alertas.extend(alertas_procuracoes_orfas)  # procurações órfãs (Patch 2026-05-16)
     if n > 1:
         alertas.append(
             f'AM: {n} contratos do mesmo banco — template AM ainda não suporta '
@@ -343,23 +406,57 @@ def montar_dados_inicial_am(pasta_banco: str, autora: Dict, comarca: str,
             idade = hoje.year - d.year - ((hoje.month, hoje.day) < (d.month, d.day))
             eh_id = idade >= 60
 
-    # 10. Procurador
-    procurador = PROCURADORES.get(procurador_chave, PROCURADORES['patrick'])
+    # 10. Procurador — usa selecionar_procurador('AM', ...) para garantir que
+    # `procurador['oab']` seja a OAB/AM (e não a OAB principal do procurador,
+    # que pode ser de outra UF, ex.: Patrick OAB/SC).
+    # Caso paradigma 2026-05-16: iniciais AM saíam com OAB/SC 53969 no rodapé.
+    from escritorios import selecionar_procurador
+    procurador = selecionar_procurador('AM', override_chave=procurador_chave)
+    if not procurador:
+        procurador = PROCURADORES.get(procurador_chave, PROCURADORES['patrick'])
+    else:
+        # Sobrescreve `oab` pela `oab_uf` para todo código downstream pegar
+        # a OAB correta da jurisdição sem precisar saber da diferença.
+        procurador = dict(procurador)
+        if procurador.get('oab_uf'):
+            procurador['oab'] = procurador['oab_uf']
 
-    # 11. Valor da causa
+    # 11. Valor da causa — USA A MESMA FÓRMULA DO XLSX
+    # Patch 2026-05-16 (caso paradigma VILSON): pipeline AM usava fórmula
+    # simplificada `parcela × qtd × 2 + dano_moral` (sem prescrição, sem
+    # competencia_fim, sem dano temporal). XLSX usava fórmula completa.
+    # Resultado: valores diferentes entre inicial e XLSX. Agora a fonte
+    # única é `calcular_valor_causa_nc` do `_common/calculadora_indebito`.
     vc = calculo.get('valor_total_geral')
     if vc is None:
-        # Calcular: dano moral + soma das parcelas × 2 (dobro CDC)
-        soma_parc_dobro = sum(
-            (c['valor_parcela_float'] or 0) * (c['qtd_parcelas'] or 0) * 2
-            for c in contratos_fmt[:1]
-        )
-        vc = dm['total'] + soma_parc_dobro
-        alertas.append(
-            f'PDF de cálculo NÃO encontrado. Valor da causa estimado pela '
-            f'fórmula (parcelas × N × 2 + dano moral) = R$ {fmt_brl(vc)}. '
-            f'CONFERIR antes do protocolo.'
-        )
+        try:
+            import sys as _sys
+            _common_dir = os.path.normpath(
+                os.path.join(os.path.dirname(__file__), '..', '..', '_common'))
+            if _common_dir not in _sys.path:
+                _sys.path.insert(0, _common_dir)
+            from calculadora_indebito import calcular_valor_causa_nc
+            calc_vc = calcular_valor_causa_nc(contratos_fmt[:1])
+            vc = calc_vc['valor_causa']
+            alertas.append(
+                f'PDF de cálculo NÃO encontrado. Valor da causa calculado '
+                f'pela fórmula oficial (parcelas dentro prescrição × dobro + '
+                f'dano moral R$ {fmt_brl(calc_vc["dano_moral"])} + dano '
+                f'temporal R$ {fmt_brl(calc_vc["dano_temporal"])}) = '
+                f'R$ {fmt_brl(vc)}. Conferir com o XLSX.'
+            )
+        except Exception as e:
+            # Fallback de segurança (não deveria acontecer)
+            soma_parc_dobro = sum(
+                (c['valor_parcela_float'] or 0) * (c['qtd_parcelas'] or 0) * 2
+                for c in contratos_fmt[:1]
+            )
+            vc = dm['total'] + soma_parc_dobro
+            alertas.append(
+                f'⚠ Falha ao usar calculadora oficial ({type(e).__name__}: {e}). '
+                f'Caiu no fallback antigo (parcela × N × 2 + dano moral) = '
+                f'R$ {fmt_brl(vc)}. CONFERIR manualmente.'
+            )
     vc_extenso = extenso_moeda(vc)
 
     # 12. Montar placeholders BA-style (para usar no adaptador)
@@ -609,15 +706,17 @@ def gerar_inicial_am(dados_caso: Dict, output_path: str) -> Dict:
             parent.insert(idx_pos, r_banco)
             break
 
-    # 4. Trocar procurador no rodapé (se diferente do default Patrick)
-    if procurador['oab'] != 'OAB/AM A2638':
-        for p in doc.paragraphs:
-            if 'Patrick Willian da Silva' in p.text:
-                substituir_in_run(p._element, {'Patrick Willian da Silva': procurador['nome']}, grifo=True)
-            if 'OAB/AM 02638' in p.text or 'OAB/AM A2638' in p.text:
-                substituir_in_run(p._element,
-                    {'OAB/AM 02638': procurador['oab'], 'OAB/AM A2638': procurador['oab']},
-                    grifo=True)
+    # 4. Trocar procurador no rodapé — SEMPRE força a OAB correta da UF.
+    # Patch 2026-05-16: template do escritório tem `OAB/AM 02638` (typo
+    # histórico — falta o "A" antes do 2638). Independente de quem assina,
+    # o pipeline corrige para a OAB correta do procurador da jurisdição.
+    for p in doc.paragraphs:
+        if 'Patrick Willian da Silva' in p.text and procurador.get('nome') != 'Patrick Willian da Silva':
+            substituir_in_run(p._element, {'Patrick Willian da Silva': procurador['nome']}, grifo=True)
+        if 'OAB/AM 02638' in p.text or 'OAB/AM A2638' in p.text:
+            substituir_in_run(p._element,
+                {'OAB/AM 02638': procurador['oab'], 'OAB/AM A2638': procurador['oab']},
+                grifo=True)
             if 'Patrick' in p.text and procurador['nome'] != 'Patrick Willian da Silva':
                 substituir_in_run(p._element, {'Patrick Willian da Silva': procurador['nome']}, grifo=True)
                 substituir_in_run(p._element, {'Patrick': procurador['nome'].split()[0]}, grifo=True)
@@ -680,4 +779,11 @@ def gerar_inicial_am(dados_caso: Dict, output_path: str) -> Dict:
                 residuais.append(ph)
 
     doc.save(output_path)
+
+    # Patch D (2026-05-16) — Validação pós-DOCX
+    # Pega "R$ 0,00", "[A CONFIRMAR", competências/datas vazias entre vírgulas.
+    # Se detectar, renomeia para *_FALHOU_VALIDACAO_FINAL.docx e levanta erro.
+    from helpers_docx import validar_docx_gerado
+    validar_docx_gerado(output_path, abortar=True)
+
     return {'modificados': modificados, 'residuais': residuais, 'output': output_path}

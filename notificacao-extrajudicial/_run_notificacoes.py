@@ -164,14 +164,17 @@ def extrair_numeros_contrato_da_pasta(pasta_acao_abs: str) -> list:
     presentes na pasta_acao. Padrão típico:
         '2- Procuração - Banco Itaú Consignado - Contrato 562732399.pdf'
 
-    Estratégia 1 (primária): regex no nome do arquivo.
-    Estratégia 2 (fallback): ESTUDO DE CADEIA.docx, se houver.
+    Estratégia 1 (primária): regex no nome do arquivo na RAIZ da pasta-banco.
+    Estratégia 2 (subpasta AM 1 inicial por contrato): se a pasta-banco está
+    organizada em subpastas `Contrato XXX/` (regra AM 2026-05-14), varre
+    cada subpasta e pega a procuração de dentro.
+    Estratégia 3 (fallback): ESTUDO DE CADEIA.docx, se houver.
     Retorna lista única de strings.
     """
     if not os.path.isdir(pasta_acao_abs):
         return []
     nums = set()
-    # 1. Nomes de arquivo
+    # 1. Nomes de arquivo na RAIZ da pasta-banco
     for nome in os.listdir(pasta_acao_abs):
         if 'procura' not in nome.lower():
             continue
@@ -180,6 +183,23 @@ def extrair_numeros_contrato_da_pasta(pasta_acao_abs: str) -> list:
         # Captura número + sufixo opcional "-N" (alguns bancos usam ex: 326994938-8)
         for m in re.finditer(r'[Cc]ontrato\s+(?:n[º°]\s*)?(\d{6,}(?:-\d+)?)', nome):
             nums.add(m.group(1))
+    if nums:
+        return list(nums)
+    # 2. SUBPASTAS Contrato XXX/ (regra AM 2026-05-14, 1 inicial por contrato)
+    # Estrutura típica: <BANCO X>/Contrato YYY/2. Procuração ... Contrato YYY.pdf
+    for sub in os.listdir(pasta_acao_abs):
+        sub_full = os.path.join(pasta_acao_abs, sub)
+        if not os.path.isdir(sub_full):
+            continue
+        if not sub.lower().startswith('contrato '):
+            continue
+        for nome in os.listdir(sub_full):
+            if 'procura' not in nome.lower():
+                continue
+            if not nome.lower().endswith('.pdf'):
+                continue
+            for m in re.finditer(r'[Cc]ontrato\s+(?:n[º°]\s*)?(\d{6,}(?:-\d+)?)', nome):
+                nums.add(m.group(1))
     if nums:
         return list(nums)
     # 2. Fallback: ESTUDO DE CADEIA.docx
@@ -759,6 +779,18 @@ def processar_cliente(pasta_cliente: str, log: list):
     # Endereço composto (logradouro + numero) — só compõe se OCR não trouxe
     if not qual.get('logradouro') and endereco_json.get('logradouro') and endereco_json.get('numero'):
         qual['logradouro'] = f"{endereco_json['logradouro']}, n° {endereco_json['numero']}"
+
+    # Reconciliação de gênero (paradigma MARILDA 2026-05-16): se o JSON traz
+    # nacionalidade autoritativa diferente da que a OCR detectou, recalcula
+    # `genero` a partir da nacionalidade do JSON. A OCR muitas vezes pega
+    # "brasileiro" (default da procuração mal preenchida) mesmo para mulheres.
+    nac_json = (cliente_json.get('nacionalidade') or '').strip().lower()
+    if nac_json == 'brasileira':
+        qual['nacionalidade'] = 'brasileira'
+        qual['genero'] = 'F'
+    elif nac_json == 'brasileiro':
+        qual['nacionalidade'] = 'brasileiro'
+        qual['genero'] = 'M'
 
     print(f'  Qualificação: nome={qual.get("nome")!r} cpf={qual.get("cpf")!r} '
           f'rg={qual.get("rg")!r} estado_civil={qual.get("estado_civil")!r}')

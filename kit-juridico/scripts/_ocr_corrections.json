@@ -1,0 +1,87 @@
+{
+  "versao": "1.0",
+  "atualizado": "2026-05-16T10:41:16.071715",
+  "correcoes": [
+    {
+      "bruto": "00000o0qo0000917305",
+      "correcao": "000000000000917305",
+      "banco": "BANRISUL",
+      "cliente": "",
+      "contexto": "",
+      "data": "2026-05-16T10:41:15.965465"
+    },
+    {
+      "bruto": "0000000000000920809",
+      "correcao": "00000000000009208603",
+      "banco": "BANRISUL",
+      "cliente": "",
+      "contexto": "",
+      "data": "2026-05-16T10:41:16.071715"
+    }
+  ],
+  "substituicoes_caracteres": {
+    "o": "0",
+    "O": "0",
+    "q": "0",
+    "Q": "0",
+    "l": "1",
+    "I": "1",
+    "|": "1",
+    "S": "5",
+    "s": "5",
+    "B": "8"
+  },
+  "palavras_ancora_bancos": [
+    "BANRISUL",
+    "BMG",
+    "PAN",
+    "BRADESCO",
+    "FACTA",
+    "C6",
+    "ITAU",
+    "ITAÚ",
+    "DAYCOVAL",
+    "OLE",
+    "SANTANDER",
+    "SAFRA",
+    "MERCANTIL",
+    "INTER",
+    "INBURSA",
+    "PARANA",
+    "PARATI",
+    "SENFF",
+    "SICOOB",
+    "CETELEM",
+    "BGN",
+    "AGIBANK",
+    "CREFISA",
+    "MASTER",
+    "PICPAY",
+    "CAPITAL",
+    "NUBANK",
+    "CAIXA",
+    "BANCO DO ESTADO DO RIO GRANDE DO SUL"
+  ],
+  "palavras_ancora_teses_bradesco": [
+    "TARIFA",
+    "TARIFAS",
+    "MORA",
+    "MORA CRED PESS",
+    "GASTOS CARTAO",
+    "GASTOS CARTÃO",
+    "APLIC INVEST",
+    "APLICAÇÃO INVEST",
+    "TITULO CAPITALIZACAO",
+    "TÍTULO CAPITALIZAÇÃO",
+    "PG ELETRON",
+    "PAGAMENTO ELETRÔNICO",
+    "ENCARGO",
+    "CESTA"
+  ],
+  "estatisticas": {
+    "total_correcoes": 2,
+    "por_banco": {
+      "BANRISUL": 2
+    }
+  }
+}

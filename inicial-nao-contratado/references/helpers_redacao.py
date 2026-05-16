@@ -30,6 +30,25 @@ W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
 XMLSPC = '{http://www.w3.org/XML/1998/namespace}space'
 
 
+def _valor_emprestado_efetivo(c: Dict) -> tuple:
+    """Retorna (valor_str, valor_float) do empréstimo, com fallback robusto:
+    1. Se `valor_emprestado` > 0 → usa ele
+    2. Senão, se `valor_liberado` > 0 → usa ele (caso PAN refinanciamento, 2026-05-16)
+    3. Senão, devolve ('', 0.0)
+
+    Caso paradigma PEDRO/PAN 2026-05-16: contratos PAN refinanciados têm
+    `valor_emprestado=0` no HISCON e o valor real fica em `valor_liberado`.
+    Sem este fallback, a inicial saía com "no valor de R$ 0,00".
+    """
+    ve_float = c.get('valor_emprestado_float') or 0
+    if ve_float and ve_float > 0:
+        return (c.get('valor_emprestado_str') or '', float(ve_float))
+    vl_float = c.get('valor_liberado_float') or 0
+    if vl_float and vl_float > 0:
+        return (c.get('valor_liberado_str') or '', float(vl_float))
+    return ('', 0.0)
+
+
 # ============================================================
 #  PRIMITIVAS DE BAIXO NÍVEL
 # ============================================================
@@ -402,9 +421,9 @@ def preencher_pedidos_declaratorios(doc, contratos_fmt: List[Dict],
 
     def _montar(c):
         modalidade = modalidade_extenso(c.get('tipo_origem'))
+        ve_str, ve = _valor_emprestado_efetivo(c)
         try:
-            ve = float((c.get('valor_emprestado_str') or '').replace('.', '').replace(',', '.'))
-            ve_ext = _ext(ve)
+            ve_ext = _ext(ve) if ve > 0 else ''
         except Exception:
             ve_ext = ''
         try:
@@ -414,7 +433,7 @@ def preencher_pedidos_declaratorios(doc, contratos_fmt: List[Dict],
             vp_ext = ''
         return (
             f'Declarar a inexistência do {modalidade} consignado no valor de '
-            f'R$ {c.get("valor_emprestado_str", "")} ({ve_ext}), contrato nº '
+            f'R$ {ve_str} ({ve_ext}), contrato nº '
             f'{c.get("numero", "")}, com descontos de R$ {c.get("valor_parcela_str", "")} '
             f'({vp_ext}) mensais, com inclusão em {c.get("data_inclusao_str", "")}, '
             f'início de desconto em {c.get("competencia_inicio_str", "")}, no benefício '
@@ -485,13 +504,13 @@ def _preencher_pedidos_formato_mg(doc, idx_cabecalho: int,
         _ext = lambda v: ''
 
     def _montar_subitem(c):
+        ve_str, ve = _valor_emprestado_efetivo(c)
         try:
-            ve = float((c.get('valor_emprestado_str') or '').replace('.', '').replace(',', '.'))
-            ve_ext = _ext(ve)
+            ve_ext = _ext(ve) if ve > 0 else ''
         except Exception:
             ve_ext = ''
         return (
-            f'No valor de R$ {c.get("valor_emprestado_str", "")} ({ve_ext}), '
+            f'No valor de R$ {ve_str} ({ve_ext}), '
             f'contrato nº {c.get("numero", "")} — com descontos de R$ '
             f'{c.get("valor_parcela_str", "")} mensais, com inclusão em '
             f'{c.get("data_inclusao_str", "")}, início de desconto em '
@@ -598,9 +617,9 @@ def preencher_bloco_fatico_formato_mg(doc, contratos_fmt: List[Dict],
             vp_ext = _ext(vp)
         except Exception:
             vp_ext = ''
+        ve_str, ve = _valor_emprestado_efetivo(c)
         try:
-            ve = float((c.get('valor_emprestado_str') or '').replace('.', '').replace(',', '.'))
-            ve_ext = _ext(ve)
+            ve_ext = _ext(ve) if ve > 0 else ''
         except Exception:
             ve_ext = ''
         # Multi-banco: cada sub-item identifica o banco real do contrato.
@@ -611,7 +630,7 @@ def preencher_bloco_fatico_formato_mg(doc, contratos_fmt: List[Dict],
             f'{c.get("competencia_inicio_str", "")}, de um total de '
             f'{c.get("qtd_parcelas", "")} parcelas, no valor de '
             f'R$ {c.get("valor_parcela_str", "")} ({vp_ext}), relativas a um '
-            f'empréstimo consignado no valor de R$ {c.get("valor_emprestado_str", "")} '
+            f'empréstimo consignado no valor de R$ {ve_str} '
             f'({ve_ext}), cuja operação foi realizada pelo {banco_do_contrato}, ora requerido.'
         )
 

@@ -622,3 +622,92 @@ def aplicar_template(template_path, dados, dst_path, strict=True):
         raise PlaceholdersResiduaisError(residuais, falha_path)
 
     return {'modificados': mod, 'residuais': residuais}
+
+
+# ============================================================================
+# Patch D — Validador pós-DOCX (2026-05-16)
+# ----------------------------------------------------------------------------
+# Caso paradigma: VILSON DA CRUZ BRASIL / BANRISUL — inicial saiu com
+# "no valor de R$ 0,00 (zero reais)", "de um total de , no valor de",
+# "[A CONFIRMAR – pendente HISCON]". Os placeholders {{...}} foram substituídos
+# (sem PlaceholdersResiduaisError), mas por valores zerados/placeholders.
+# Esta varredura PEGA o problema no fim e renomeia o arquivo para
+# _FALHOU_VALIDACAO_FINAL antes de devolver erro.
+# ============================================================================
+
+class DocxValidacaoFinalError(RuntimeError):
+    """Levantada quando o DOCX gerado contém marcas de inicial incompleta:
+    R$ 0,00 no contexto de valor de empréstimo/parcela, [A CONFIRMAR],
+    competências vazias entre vírgulas, etc."""
+    def __init__(self, achados, dst_path):
+        self.achados = list(achados)
+        self.dst_path = dst_path
+        super().__init__(
+            f'INICIAL INCOMPLETA — validação pós-DOCX detectou marcas de '
+            f'fallback fictício em {os.path.basename(dst_path)}:\n'
+            + '\n'.join(f'  • {a}' for a in self.achados)
+            + '\n\nCausa típica: contrato sem HISCON real (placeholders '
+              'preenchidos com 0,0 / vazio / "[A CONFIRMAR]"). NÃO PROTOCOLE. '
+              'Conferir HISCON e refazer geração.'
+        )
+
+
+def validar_docx_gerado(dst_path: str, *, abortar: bool = True) -> list:
+    """Varre o DOCX procurando sintomas de inicial incompleta.
+
+    Procura por estes padrões no texto do XML:
+      1. 'R$ 0,00'  (valor zerado de empréstimo/parcela/desconto)
+      2. '[A CONFIRMAR'
+      3. 'pendente HISCON'
+      4. 'de um total de , '  (competência vazia entre vírgulas)
+      5. 'início de desconto em ,'
+      6. 'no valor de , '
+      7. 'inclusão em ,'
+      8. 'competência , '  (vírgula imediatamente após "competência")
+
+    Se `abortar=True` (padrão), renomeia o arquivo para
+    `<base>_FALHOU_VALIDACAO_FINAL<ext>` e levanta DocxValidacaoFinalError.
+    Se `abortar=False`, apenas devolve a lista de achados.
+
+    Returns:
+        list[str]: lista descritiva dos sintomas encontrados (vazia = OK).
+    """
+    if not os.path.exists(dst_path):
+        return [f'arquivo inexistente: {dst_path}']
+
+    with zipfile.ZipFile(dst_path, 'r') as z:
+        xml_total = z.read('word/document.xml').decode('utf-8')
+
+    # Remove tags XML para varrer só o texto visível (evita match em
+    # estilos/atributos que contenham 0,00 legitimamente)
+    txt = re.sub(r'<[^>]+>', '', xml_total)
+    # Normaliza espaços
+    txt_normal = re.sub(r'\s+', ' ', txt)
+
+    achados = []
+    if 'R$ 0,00' in txt or 'R$0,00' in txt:
+        achados.append('valor "R$ 0,00" encontrado no texto (provável fallback fictício)')
+    if '[A CONFIRMAR' in txt:
+        achados.append('placeholder "[A CONFIRMAR" sobrou no texto final')
+    if re.search(r'pendente\s+HISCON', txt, re.IGNORECASE):
+        achados.append('"pendente HISCON" sobrou no texto final')
+    if re.search(r'de\s+um\s+total\s+de\s*,', txt_normal):
+        achados.append('"de um total de ," — qtd_parcelas vazio entre vírgulas')
+    if re.search(r'in[ií]cio\s+de\s+desconto\s+em\s*,', txt_normal):
+        achados.append('"início de desconto em ," — competência vazia entre vírgulas')
+    if re.search(r'no\s+valor\s+de\s*,', txt_normal):
+        achados.append('"no valor de ," — valor vazio entre vírgulas')
+    if re.search(r'inclus[aã]o\s+em\s*,', txt_normal):
+        achados.append('"inclusão em ," — data vazia entre vírgulas')
+    if re.search(r'compet[eê]ncia\s*,', txt_normal):
+        achados.append('"competência ," — competência vazia entre vírgulas')
+
+    if achados and abortar:
+        base, ext = os.path.splitext(dst_path)
+        falha_path = base + '_FALHOU_VALIDACAO_FINAL' + ext
+        if os.path.exists(falha_path):
+            os.remove(falha_path)
+        os.rename(dst_path, falha_path)
+        raise DocxValidacaoFinalError(achados, falha_path)
+
+    return achados

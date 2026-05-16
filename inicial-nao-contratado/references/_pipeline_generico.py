@@ -50,10 +50,22 @@ def gerar_inicial_padrao(
     forcar_foro: Optional[str] = None,
     representante_legal: Optional[Dict] = None,
     assume_com_deposito: bool = False,
+    banco_codigo_override: Optional[str] = None,
+    # DEPRECATED (Patch B — 2026-05-16): aceitos só para abortar com mensagem clara
     permitir_contrato_virtual: bool = False,
     contrato_virtual_overrides: Optional[Dict] = None,
-    banco_codigo_override: Optional[str] = None,
 ) -> Dict:
+    # Patch B — banir fallbacks fictícios no entrypoint público
+    if permitir_contrato_virtual or contrato_virtual_overrides:
+        raise RuntimeError(
+            '🚨 permitir_contrato_virtual / contrato_virtual_overrides FORAM '
+            'BANIDOS em 2026-05-16 (caso paradigma VILSON/BANRISUL — inicial '
+            'gerada com R$ 0,00 e cálculo com R$ 50 × 29 meses fictícios). '
+            'A skill NÃO aceita mais gerar inicial sem contrato real no HISCON. '
+            'AÇÃO: remover esses parâmetros da chamada; conferir o número da '
+            'procuração com o cliente/CCB; refazer procuração se necessário; '
+            'ou suspender a pasta até esclarecer.'
+        )
     """Gera inicial usando o pipeline correto pelo perfil informado.
 
     Args:
@@ -115,8 +127,6 @@ def gerar_inicial_padrao(
             'comarca': comarca,
             'procurador_chave': procurador_chave,
             'representante_legal': representante_legal,
-            'permitir_contrato_virtual': permitir_contrato_virtual,
-            'contrato_virtual_overrides': contrato_virtual_overrides,
             'banco_codigo_override': banco_codigo_override,
         })
     elif perfil['pipeline_modulo'] == '_pipeline_caso_al':

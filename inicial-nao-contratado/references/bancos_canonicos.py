@@ -62,14 +62,20 @@ BANCOS = {
     },
     'banrisul': {
         'matriz': {
-            'nome': 'BANCO BANRISUL S.A.',
-            'descricao_pj': 'pessoa jurídica de direito privado',
+            'nome': 'BANCO DO ESTADO DO RIO GRANDE DO SUL S.A. (BANRISUL)',
+            'descricao_pj': 'sociedade de economia mista',
+            'cnpj': '92.702.067/0001-96',
+            'endereco': 'Rua Capitão Montanha, nº 177, Centro, Porto Alegre/RS, CEP 90.010-040',
+        },
+        'AM': {
+            'nome': 'BANCO DO ESTADO DO RIO GRANDE DO SUL S.A. (BANRISUL)',
+            'descricao_pj': 'sociedade de economia mista',
             'cnpj': '92.702.067/0001-96',
             'endereco': 'Rua Capitão Montanha, nº 177, Centro, Porto Alegre/RS, CEP 90.010-040',
         },
         'BA': {
-            'nome': 'BANCO BANRISUL S.A.',
-            'descricao_pj': 'pessoa jurídica de direito privado',
+            'nome': 'BANCO DO ESTADO DO RIO GRANDE DO SUL S.A. (BANRISUL)',
+            'descricao_pj': 'sociedade de economia mista',
             'cnpj': '92.702.067/0001-96',
             'endereco': 'Rua Alceu Amoroso Lima, Loja 01, Caminho das Árvores, Salvador/BA, CEP 41.820-770',
         },
@@ -672,6 +678,16 @@ ALIASES = {
     'BGN': 'bgn_cetelem',
     'BGN/CETELEM': 'bgn_cetelem',
     'BANCO BGN/CETELEM': 'bgn_cetelem',
+
+    'BANRISUL': 'banrisul',
+    'BANCO BANRISUL': 'banrisul',
+    'BANCO BANRISUL S A': 'banrisul',
+    'BANCO BANRISUL S.A.': 'banrisul',
+    'BANCO DO ESTADO DO RIO GRANDE DO SUL': 'banrisul',
+    'BANCO DO ESTADO DO RIO GRANDE DO SUL SA': 'banrisul',
+    'BANCO DO ESTADO DO RIO GRANDE DO SUL S A': 'banrisul',
+    'BANCO DO ESTADO DO RIO GRANDE DO SUL S.A.': 'banrisul',
+    'BANCO DO ESTADO DO RIO GRANDE DO SUL S.A. (BANRISUL)': 'banrisul',
 }
 
 

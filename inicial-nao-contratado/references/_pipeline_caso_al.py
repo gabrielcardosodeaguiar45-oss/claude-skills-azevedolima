@@ -40,7 +40,8 @@ from helpers_docx import substituir_in_run
 from extenso import extenso_moeda
 from extrator_hiscon import (parse_hiscon, filtrar_contratos_por_numero,
                               formatar_contrato_para_template,
-                              auditar_procuracoes_vs_hiscon)
+                              auditar_procuracoes_vs_hiscon,
+                              validar_contratos_obrigatorios)
 from extrator_hiscre import parse_hiscre
 from extrator_calculo import parse_calculo, eh_idoso
 from extrator_procuracao import extrair_numeros_contrato_de_pasta
@@ -228,6 +229,31 @@ def montar_dados_inicial_al(pasta_cliente: str, autora: Dict, comarca: str,
     hiscre = parse_hiscre(hiscre_path) if hiscre_path else {}
     if not hiscre:
         alertas.append('⚠ HISCRE não encontrado. CPF e renda podem estar incompletos.')
+    # Patch 2026-05-16 (caso VILSON): propagar alertas qualidade do HISCRE
+    # — competência muito antiga, valor líquido faltando, etc.
+    for a in (hiscre or {}).get('alertas_qualidade') or []:
+        alertas.append(a)
+    # Auditoria procurações órfãs (Patch 2026-05-16, caso VILSON 2ª Banrisul):
+    # detecta procurações no `0. Kit/Procurações.pdf` consolidado que não
+    # viraram pasta-banco. Tolerante a falhas de import.
+    try:
+        import sys as _sys
+        skill_dir = r'C:\Users\gabri\.claude\skills\kit-juridico\scripts'
+        if skill_dir not in _sys.path:
+            _sys.path.insert(0, skill_dir)
+        from auditor_procuracoes_orfas import auditar_cliente  # type: ignore
+        # No AL, pasta_cliente do pipeline JÁ É a raiz do cliente
+        if os.path.isdir(os.path.join(pasta_cliente, '0. Kit')):
+            rel_aud = auditar_cliente(pasta_cliente)
+            if 'erro' not in rel_aud:
+                for orfa in rel_aud.get('orfas') or []:
+                    alertas.append(
+                        f'🚨 PROCURAÇÃO ÓRFÃ: pág {orfa["pagina"]} · '
+                        f'banco {orfa["banco"]} · contrato `{orfa["contrato"]}`. '
+                        f'AÇÃO: criar pasta-banco e rodar inicial separada.'
+                    )
+    except Exception:
+        pass
 
     # 3. Cálculo Jurídico (opcional)
     calc_path = (encontrar_pdf(pasta_cliente, 'cálculo')
@@ -298,6 +324,11 @@ def montar_dados_inicial_al(pasta_cliente: str, autora: Dict, comarca: str,
         raise RuntimeError('Nenhum contrato encontrado para a inicial AL.')
 
     contratos_fmt = [formatar_contrato_para_template(c) for c in contratos_brutos]
+
+    # Patch C (2026-05-16) — Validador pré-geração: aborta se algum contrato
+    # estiver com valor zero, qtd inválida, competência vazia ou data com
+    # placeholder. Caso paradigma VILSON/BANRISUL.
+    validar_contratos_obrigatorios(contratos_fmt)
 
     # 6. Identificar banco-réu (do PRIMEIRO contrato)
     banco_nome_hiscon = contratos_brutos[0].get('banco_nome', '')
@@ -376,14 +407,27 @@ def montar_dados_inicial_al(pasta_cliente: str, autora: Dict, comarca: str,
         vc = calculo['valor_total_geral']
         fonte_vc = 'PDF de cálculo'
     if vc is None:
-        soma_dobros = sum(
-            (c.get('valor_parcela_float', 0) or 0)
-            * (c.get('qtd_parcelas', 0) or 0) * 2
-            for c in contratos_fmt
-        )
-        vc = soma_dobros + dm['total']
-        fonte_vc = (f'estimado: soma dos dobros (R$ {soma_dobros:,.2f}) + dano '
-                    f'moral (R$ {dm["total"]:,.2f}) — sem Excel e sem PDF de cálculo')
+        # Patch 2026-05-16 (caso paradigma VILSON): usar `calcular_valor_causa_nc`
+        # com a MESMA fórmula que o XLSX (parcelas dentro prescrição × dobro +
+        # dano moral + dano temporal, respeitando competencia_fim).
+        try:
+            from calculadora_indebito import calcular_valor_causa_nc
+            calc_vc = calcular_valor_causa_nc(contratos_fmt)
+            vc = calc_vc['valor_causa']
+            fonte_vc = (f'calculado pela fórmula oficial (parcelas dentro '
+                        f'prescrição × dobro + dano moral R$ {calc_vc["dano_moral"]:,.2f} '
+                        f'+ dano temporal R$ {calc_vc["dano_temporal"]:,.2f})')
+        except Exception as _e:
+            # Fallback de segurança
+            soma_dobros = sum(
+                (c.get('valor_parcela_float', 0) or 0)
+                * (c.get('qtd_parcelas', 0) or 0) * 2
+                for c in contratos_fmt
+            )
+            vc = soma_dobros + dm['total']
+            fonte_vc = (f'⚠ FALLBACK ANTIGO (sem prescrição/competencia_fim/'
+                        f'dano temporal): soma dos dobros (R$ {soma_dobros:,.2f}) + '
+                        f'dano moral (R$ {dm["total"]:,.2f}). CONFERIR manualmente.')
 
     # 11. Decidir foro — `cidade_autor` é levada em conta para a regra de
     # cidade fixa (Viçosa/São Sebastião/Traipu → sempre Federal com renúncia
@@ -1174,6 +1218,10 @@ def gerar_inicial_al(dados_caso: Dict, output_path: str) -> Dict:
 
     # ---- Salvar ----
     doc.save(output_path)
+
+    # Patch D (2026-05-16) — Validação pós-DOCX
+    from helpers_docx import validar_docx_gerado
+    validar_docx_gerado(output_path, abortar=True)
 
     # Verificar residuais (xxxxxxxx, xxx,xx, etc.) no bloco selecionado —
     # esses são os campos que o procurador precisa preencher manualmente.

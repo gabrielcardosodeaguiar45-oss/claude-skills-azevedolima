@@ -20,7 +20,8 @@ from helpers_docx import substituir_in_run
 from extenso import extenso_moeda, extenso_cardinal
 from extrator_hiscon import (parse_hiscon, filtrar_contratos_por_numero,
                               formatar_contrato_para_template,
-                              auditar_procuracoes_vs_hiscon)
+                              auditar_procuracoes_vs_hiscon,
+                              validar_contratos_obrigatorios)
 from extrator_procuracao import extrair_numeros_contrato_de_pasta
 
 
@@ -247,6 +248,11 @@ def montar_dados_inicial(pasta_banco: str, autora: Dict, subsecao: str,
     # 5. Formatar contratos para o template
     contratos_fmt = [formatar_contrato_para_template(c) for c in contratos_brutos]
 
+    # Patch C (2026-05-16) — Validador pré-geração: aborta se algum contrato
+    # estiver com valor zero, qtd inválida, competência vazia ou data com
+    # placeholder. Caso paradigma VILSON/BANRISUL.
+    validar_contratos_obrigatorios(contratos_fmt)
+
     # 6. Localizar PDF de cálculo (opcional — sem, calcula valor da causa
     # pela fórmula soma_dobros + dano_moral)
     calc_path = (encontrar_pdf(pasta_banco, '10- CÁLCULO') or
@@ -296,7 +302,22 @@ def montar_dados_inicial(pasta_banco: str, autora: Dict, subsecao: str,
     eh_id = eh_idoso(calculo)
 
     # 11. Montar dicionário de placeholders
-    vc = calculo.get('valor_total_geral') or 0.0
+    # Patch 2026-05-16 (caso paradigma VILSON): pipeline BA caía em R$ 0,00
+    # quando não havia PDF de cálculo. Agora usa `calcular_valor_causa_nc`
+    # com a MESMA fórmula que o XLSX.
+    vc = calculo.get('valor_total_geral')
+    if not vc:
+        try:
+            import sys as _sys
+            _common_dir = os.path.normpath(os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), '..', '..', '_common'))
+            if _common_dir not in _sys.path:
+                _sys.path.insert(0, _common_dir)
+            from calculadora_indebito import calcular_valor_causa_nc
+            calc_vc = calcular_valor_causa_nc(contratos_fmt)
+            vc = calc_vc['valor_causa']
+        except Exception:
+            vc = 0.0  # fallback de segurança (template avisa via residual)
     inss_endereco = INSS_FIXO['enderecos_subsecao'].get(subsecao, INSS_FIXO['enderecos_subsecao']['Salvador'])
 
     # Lista compactada de contratos para a frase intro do MULT
@@ -536,6 +557,11 @@ def gerar_inicial(dados_caso: Dict, output_path: str) -> Dict:
                 residuais.append(ph)
 
     doc.save(output_path)
+
+    # Patch D (2026-05-16) — Validação pós-DOCX
+    from helpers_docx import validar_docx_gerado
+    validar_docx_gerado(output_path, abortar=True)
+
     return {
         'modificados': modificados,
         'residuais': residuais,
@@ -723,6 +749,33 @@ def gerar_relatorio_paralelo(dados_caso: Dict, output_path: str):
     if audit_p:
         for a in audit_p.get('alertas', []):
             todos_alertas.append(a)
+    # Alertas de qualidade do HISCRE (Patch 2026-05-16, caso VILSON):
+    # competência muito antiga, valor líquido faltando, etc.
+    for a in (dados_caso.get('hiscre') or {}).get('alertas_qualidade') or []:
+        todos_alertas.append(a)
+    # Auditoria procurações órfãs (Patch 2026-05-16, caso VILSON 2ª Banrisul)
+    pasta_banco_caso = dados_caso.get('pasta_banco') or ''
+    if pasta_banco_caso:
+        try:
+            import sys as _sys
+            skill_dir = r'C:\Users\gabri\.claude\skills\kit-juridico\scripts'
+            if skill_dir not in _sys.path:
+                _sys.path.insert(0, skill_dir)
+            from auditor_procuracoes_orfas import auditar_cliente  # type: ignore
+            pasta_cliente_aud = os.path.dirname(os.path.dirname(
+                os.path.abspath(pasta_banco_caso)))
+            if os.path.isdir(os.path.join(pasta_cliente_aud, '0. Kit')):
+                rel_aud = auditar_cliente(pasta_cliente_aud)
+                if 'erro' not in rel_aud:
+                    for orfa in rel_aud.get('orfas') or []:
+                        todos_alertas.append(
+                            f'🚨 PROCURAÇÃO ÓRFÃ: pág {orfa["pagina"]} · '
+                            f'banco {orfa["banco"]} · contrato '
+                            f'`{orfa["contrato"]}`. AÇÃO: criar pasta-banco e '
+                            f'rodar inicial separada.'
+                        )
+        except Exception:
+            pass
     if 'BRUTO' in dados_caso.get('fonte_renda', ''):
         todos_alertas.append(
             f'Renda usada veio do BASE DE CÁLCULO do HISCON (valor BRUTO). '

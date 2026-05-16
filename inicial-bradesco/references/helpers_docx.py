@@ -674,4 +674,29 @@ def aplicar_template(template_path, dados, dst_path, strict=True):
         os.rename(dst_path, falha_path)
         raise PlaceholdersResiduaisError(residuais, falha_path)
 
+    # VALIDADOR PÓS-DOCX (paridade com inicial-nao-contratado, 2026-05-16):
+    # detecta R$ 0,00, [A CONFIRMAR, "pendente HISCON", competências/datas
+    # vazias entre vírgulas. Se algum dispara, renomeia para
+    # *_FALHOU_VALIDACAO_FINAL.docx e levanta DocxValidacaoFinalError.
+    # Importa via importlib.util para evitar colisão com helpers_docx
+    # local da skill (que tem `validar_docx_gerado` em outra implementação).
+    if strict:
+        try:
+            import importlib.util as _ilu
+            _nc_helpers_path = r"C:/Users/gabri/.claude/skills/inicial-nao-contratado/references/helpers_docx.py"
+            if os.path.exists(_nc_helpers_path):
+                _spec = _ilu.spec_from_file_location("_nc_helpers_docx", _nc_helpers_path)
+                _mod = _ilu.module_from_spec(_spec)
+                _spec.loader.exec_module(_mod)
+                if hasattr(_mod, 'validar_docx_gerado'):
+                    _mod.validar_docx_gerado(dst_path, abortar=True)
+        except Exception as _e:
+            # Re-levanta se for o erro de validação (queremos travar mesmo)
+            from importlib.util import spec_from_file_location as _sfl
+            tipo_nome = type(_e).__name__
+            if tipo_nome == 'DocxValidacaoFinalError':
+                raise
+            # Outros erros: registra mas não bloqueia
+            print(f"  ⚠ validador pós-DOCX não rodou: {tipo_nome}: {str(_e)[:120]}")
+
     return {'modificados': mod, 'residuais': residuais}
